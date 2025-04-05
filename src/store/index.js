@@ -1,0 +1,1 @@
+// Pinia or Vuex setup placeholder
