@@ -15,10 +15,18 @@
       <router-view />
     </main>
   </div>
+  <!-- Boton Logout -->
+  <button @click="logout" class="bg-red-500 text-white px-3 py-1 rounded">Cerrar sesión</button>
+
 </template>
 
 <script setup>
 // nada por ahora
+const logout = () => {
+  localStorage.removeItem('user')
+  router.push('/login')
+}
+
 </script>
 
 <style scoped>
