@@ -6,30 +6,56 @@
     <Notification v-if="notificationMessage" :message="notificationMessage" :type="notificationType"
         @close="notificationMessage = ''" />
 
-    <!-- Botones de ejemplo -->
-    <div class="space-y-4 mt-4">
-        <button @click="showNotification('success', 'Acción realizada con éxito.')"
-            class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition">
-            Mostrar Éxito
-        </button>
-        <button @click="showNotification('error', 'Ocurrió un error inesperado.')"
-            class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition">
-            Mostrar Error
-        </button>
-        <button @click="showNotification('warning', 'Advertencia: Verifica los datos.')"
-            class="bg-yellow-500 text-black py-2 px-4 rounded hover:bg-yellow-600 transition">
-            Mostrar Advertencia
-        </button>
-        <button @click="showNotification('info', 'Información importante.')"
-            class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">
-            Mostrar Información
-        </button>
+    <div class="admin-panel">
+        <SidebarMenu @changeView="changeView" />
+        <div class="main-content">
+            <HeaderPanel @logout="handleLogout" />
+            <component :is="currentComponent" @show-notification="showNotification" />
+        </div>
+        <Notification v-if="notificationMessage" :message="notificationMessage" :type="notificationType"
+            @close="notificationMessage = ''" />
     </div>
+
+
 </template>
 
 <script setup>
 import { ref } from "vue";
+import SidebarMenu from '@/components/admin/SidebarMenu.vue'
+import HeaderPanel from '@/components/admin/HeaderPanel.vue'
+
+// Componentes cargables dinámicamente
+import DashboardStats from '@/components/admin/DashboardStats.vue'
+import UserManagement from '@/components/admin/UserManagement.vue'
+import BankAccountsManagement from '@/components/admin/BankAccountsManagement.vue'
+import DemographicsData from '@/components/admin/DemographicsData.vue'
+import StatisticsGraphs from '@/components/admin/StatisticsGraphs.vue'
+import Settings from '@/components/admin/Settings.vue'
 import Notification from "../components/Notification.vue";
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
+import { auth, db } from '@/firebase'
+
+const currentView = ref('dashboard')
+
+const viewsMap = {
+    dashboard: DashboardStats,
+    usuarios: UserManagement,
+    tarjetas: BankAccountsManagement,
+    datos: DemographicsData,
+    estadisticas: StatisticsGraphs,
+    configuraciones: Settings,
+}
+
+const currentComponent = computed(() => viewsMap[currentView.value])
+
+function changeView(view) {
+    currentView.value = view
+}
+
+function handleLogout() {
+    // cerrar sesión en Firebase
+}
 
 // Mensaje y tipo de notificación
 const notificationMessage = ref("");
@@ -40,4 +66,15 @@ const showNotification = (type, message) => {
     notificationType.value = type;
     notificationMessage.value = message;
 };
+
+//Registrar nuevo usuario
+const registrarUsuario = async (email, password, role) => {
+    const cred = await createUserWithEmailAndPassword(auth, email, password)
+    await setDoc(doc(db, 'usuarios', cred.user.uid), {
+        email,
+        role
+    })
+}
+showNotification("success", "Usuario registrado con éxito");
+
 </script>

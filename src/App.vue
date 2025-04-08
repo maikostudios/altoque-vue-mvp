@@ -1,7 +1,7 @@
 <template>
 
   <div class="min-h-screen bg-gray-100 text-gray-800">
-    <nav class="bg-white shadow p-4 flex justify-between items-center">
+    <!-- <nav class="bg-white shadow p-4 flex justify-between items-center">
       <h1 class="text-xl font-bold">Altoque App</h1>
       <ul class="flex gap-4">
         <li><router-link to="/login" class="hover:underline">Login</router-link></li>
@@ -10,7 +10,7 @@
         <li><router-link :to="{ name: 'PublicLanding', params: { username: 'ejemplo' } }"
             class="hover:underline">Landing Pública</router-link></li>
       </ul>
-    </nav>
+    </nav> -->
 
     <main class="p-4">
       <router-view />

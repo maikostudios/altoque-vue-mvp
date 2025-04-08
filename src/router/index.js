@@ -1,33 +1,28 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from "vue-router";
-
-// Importa tus vistas
-import HomeView from "../views/HomeView.vue";
-import LoginView from "../views/LoginView.vue";
-import AdminPanelView from "../views/AdminPanelView.vue";
-import UserDashboardView from "../views/UserDashboardView.vue";
-import PublicLandingView from "../views/PublicLandingView.vue";
+import { useAuthStore } from "@/store/auth"; // Asegúrate de que la ruta sea correcta
 
 const routes = [
-  { path: "/", name: "home", component: HomeView },
-  { path: "/login", name: "login", component: LoginView },
+  { path: "/", component: () => import("@/views/HomeView.vue") },
+  { path: "/login", component: () => import("@/views/LoginView.vue") },
+  {
+    path: "/dashboard",
+    component: () => import("@/views/UserDashboardView.vue"),
+    meta: { requiresAuth: true, role: "user" },
+  },
   {
     path: "/admin",
-    name: "admin",
-    component: AdminPanelView,
+    component: () => import("@/views/AdminPanelView.vue"),
     meta: { requiresAuth: true, role: "admin" },
   },
   {
-    path: "/dashboard",
-    name: "dashboard",
-    component: UserDashboardView,
-    meta: { requiresAuth: true, role: "user" },
+    path: "/:username",
+    name: "PublicLanding",
+    component: () => import("@/views/PublicLandingView.vue"),
   },
-  // 🔁 Cambio importante aquí 👇
   {
-    path: "/u/:username",
-    name: "PublicLanding", // ← Este nombre debe coincidir con lo que usas en router-link
-    component: PublicLandingView,
+    path: "/vendedor",
+    component: () => import("@/views/SellerDashboardView.vue"),
+    meta: { requiresAuth: true, role: "vendedor" },
   },
 ];
 
@@ -36,16 +31,32 @@ const router = createRouter({
   routes,
 });
 
-// Protección de rutas
-router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem("user"));
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore();
+  const auth = getAuth();
 
-  if (to.meta.requiresAuth) {
-    if (!user) return next("/login"); // Redirigir al login si no está autenticado
-    if (to.meta.role && to.meta.role !== user.role) return next("/login"); // Redirigir si el rol no coincide
+  if (!authStore.user) {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      await authStore.setUser(currentUser);
+    }
   }
 
-  next();
+  const isAuthenticated = !!authStore.user;
+
+  // Si está intentando ir a login y ya está logueado, redirige según su rol
+  if (to.path === "/login" && isAuthenticated) {
+    if (authStore.role === "admin") return next("/admin");
+    if (authStore.role === "vendedor") return next("/vendedor");
+    return next("/dashboard");
+  }
+
+  // Protección de rutas privadas (si hay rutas protegidas más adelante)
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return next("/login");
+  }
+
+  next(); // todo bien
 });
 
 export default router;
