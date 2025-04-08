@@ -1,4 +1,5 @@
 <template>
+
   <div class="min-h-screen bg-gray-100 text-gray-800">
     <nav class="bg-white shadow p-4 flex justify-between items-center">
       <h1 class="text-xl font-bold">Altoque App</h1>
@@ -21,6 +22,11 @@
 </template>
 
 <script setup>
+//importar el homeview.vue
+import { useRouter } from 'vue-router'
+import { ref } from 'vue'
+import HomeView from './views/HomeView.vue'
+
 // nada por ahora
 const logout = () => {
   localStorage.removeItem('user')

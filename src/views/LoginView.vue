@@ -1,49 +1,49 @@
+<!-- filepath: d:\proyectosvuepersonal\maikostudiosWeb\altoque-vue-mvp\src\views\LoginView.vue -->
 <template>
-    <div class="flex items-center justify-center min-h-screen bg-gray-100">
-        <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm">
-            <h2 class="text-2xl font-bold mb-4 text-center">Iniciar sesión</h2>
-            <form @submit.prevent="handleLogin">
-                <div class="mb-4">
-                    <label class="block mb-1 text-sm font-medium text-gray-700">Correo</label>
-                    <input v-model="email" type="email" required class="w-full px-3 py-2 border rounded-lg" />
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-1 text-sm font-medium text-gray-700">Contraseña</label>
-                    <input v-model="password" type="password" required class="w-full px-3 py-2 border rounded-lg" />
-                </div>
-                <button type="submit"
-                    class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Entrar</button>
-            </form>
-        </div>
+    <div class="p-4 max-w-md mx-auto">
+        <h2 class="text-xl font-semibold text-center mb-4">Iniciar Sesión</h2>
+        <form @submit.prevent="handleLogin" class="space-y-4">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">Usuario</label>
+                <input v-model="username" type="text" id="username"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    required />
+            </div>
+            <div>
+                <label for="role" class="block text-sm font-medium text-gray-700">Rol</label>
+                <select v-model="role" id="role"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    required>
+                    <option value="user">Usuario</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                Iniciar Sesión
+            </button>
+        </form>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-const email = ref('')
-const password = ref('')
-const router = useRouter()
+const username = ref("");
+const role = ref("user");
+const router = useRouter();
 
 const handleLogin = () => {
-    // Simulamos usuarios
-    const users = [
-        { email: 'admin@altoque.cl', password: 'admin123', role: 'admin' },
-        { email: 'user@altoque.cl', password: 'user123', role: 'user' }
-    ]
+    // Guardar usuario y rol en localStorage
+    const user = { username: username.value, role: role.value };
+    localStorage.setItem("user", JSON.stringify(user));
 
-    const user = users.find(u => u.email === email.value && u.password === password.value)
-
-    if (user) {
-        localStorage.setItem('user', JSON.stringify(user))
-        if (user.role === 'admin') {
-            router.push('/admin')
-        } else {
-            router.push('/dashboard')
-        }
+    // Redirigir según el rol
+    if (role.value === "admin") {
+        router.push("/admin");
     } else {
-        alert('Credenciales incorrectas')
+        router.push("/dashboard");
     }
-}
+};
 </script>

@@ -41,8 +41,8 @@ router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem("user"));
 
   if (to.meta.requiresAuth) {
-    if (!user) return next("/login");
-    if (to.meta.role && to.meta.role !== user.role) return next("/login");
+    if (!user) return next("/login"); // Redirigir al login si no está autenticado
+    if (to.meta.role && to.meta.role !== user.role) return next("/login"); // Redirigir si el rol no coincide
   }
 
   next();
