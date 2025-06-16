@@ -27,6 +27,7 @@ import HeaderPanel from '@/components/admin/HeaderPanel.vue'
 // Componentes cargables dinámicamente
 import DashboardStats from '@/components/admin/DashboardStats.vue'
 import UserManagement from '@/components/admin/UserManagement.vue'
+import SellerManagement from '@/components/admin/SellerManagement.vue'
 import BankAccountsManagement from '@/components/admin/BankAccountsManagement.vue'
 import DemographicsData from '@/components/admin/DemographicsData.vue'
 import StatisticsGraphs from '@/components/admin/StatisticsGraphs.vue'
@@ -38,6 +39,7 @@ const currentView = ref('dashboard')
 const viewsMap = {
     dashboard: DashboardStats,
     usuarios: UserManagement,
+    vendedores: SellerManagement,
     tarjetas: BankAccountsManagement,
     datos: DemographicsData,
     estadisticas: StatisticsGraphs,

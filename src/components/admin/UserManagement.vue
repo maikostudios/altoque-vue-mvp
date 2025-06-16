@@ -65,6 +65,38 @@
                     </div>
                 </div>
 
+                <!-- Plan Premium -->
+                <div class="premium-section">
+                    <h4>⭐ Plan Premium</h4>
+                    <div class="premium-option">
+                        <label class="checkbox-label premium">
+                            <input v-model="form.esPremium" type="checkbox">
+                            <span class="checkmark"></span>
+                            <div class="premium-info">
+                                <strong>Usuario Premium</strong>
+                                <p>Acceso a funciones avanzadas por 1 año</p>
+                            </div>
+                        </label>
+
+                        <div v-if="form.esPremium" class="premium-details">
+                            <div class="premium-benefits">
+                                <h5>✨ Beneficios Premium:</h5>
+                                <ul>
+                                    <li>Hasta 5 tarjetas bancarias</li>
+                                    <li>Estadísticas y métricas detalladas</li>
+                                    <li>Personalización avanzada</li>
+                                    <li>Branding personalizado</li>
+                                    <li>Soporte prioritario</li>
+                                </ul>
+                            </div>
+                            <div class="premium-validity">
+                                <p><strong>Vigencia:</strong> 1 año desde la fecha de registro</p>
+                                <p><strong>Vence:</strong> {{ fechaVencimientoPremium }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary" :disabled="submitting">
                         {{ submitting ? '⏳ Registrando...' : '✅ Registrar Usuario' }}
@@ -92,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { auth, db } from '@/firebase'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore'
@@ -100,6 +132,17 @@ import { useAuthStore } from '@/store/auth'
 
 const authStore = useAuthStore()
 const submitting = ref(false)
+
+// Computed para fecha de vencimiento Premium
+const fechaVencimientoPremium = computed(() => {
+    const fechaVencimiento = new Date()
+    fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1)
+    return fechaVencimiento.toLocaleDateString('es-CL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    })
+})
 
 const form = ref({
     email: '',
@@ -111,7 +154,8 @@ const form = ref({
     comuna: '',
     region: '',
     telefono: '',
-    empresa: ''
+    empresa: '',
+    esPremium: false
 })
 
 const limpiarFormulario = () => {
@@ -125,7 +169,8 @@ const limpiarFormulario = () => {
         comuna: '',
         region: '',
         telefono: '',
-        empresa: ''
+        empresa: '',
+        esPremium: false
     }
 }
 
@@ -145,22 +190,38 @@ const registrarUsuario = async () => {
         const uid = cred.user.uid
         console.log('Usuario creado en Auth:', uid)
 
+        // Calcular fechas para Premium
+        const fechaRegistro = new Date()
+        const fechaVencimientoPremiumDate = form.value.esPremium ?
+            new Date(fechaRegistro.getFullYear() + 1, fechaRegistro.getMonth(), fechaRegistro.getDate()) :
+            null
+
         // Crear documento en la colección 'users' (no 'usuarios')
         await setDoc(doc(db, 'users', uid), {
             email: form.value.email,
             rut: formatRut(form.value.rut),
             nombre: form.value.nombre,
-            apellido: '', // Campo faltante
-            telefono: '', // Campo faltante
+            apellido: form.value.apellido,
+            telefono: form.value.telefono,
             fechaNacimiento: form.value.fechaNacimiento ? new Date(form.value.fechaNacimiento) : null,
             comuna: form.value.comuna,
-            region: '', // Campo faltante
+            region: form.value.region,
             empresa: form.value.empresa,
             role: 'usuario', // Usar 'role' en lugar de 'rol'
+
+            // Plan y permisos
+            tipoPlan: form.value.esPremium ? 'premium' : 'gratuito',
+            esPremium: form.value.esPremium,
+            fechaVencimientoPremium: fechaVencimientoPremiumDate,
+            limiteTarjetas: form.value.esPremium ? 5 : 1,
+            accesoEstadisticas: form.value.esPremium,
+            personalizacionAvanzada: form.value.esPremium,
+
+            // Metadatos
             estado: 'activo',
-            vendedor: authStore.user?.email || 'admin',
             fechaRegistro: serverTimestamp(),
             ultimoAcceso: serverTimestamp(),
+            vendedor: authStore.user?.email || 'admin',
             creadoPor: 'admin'
         })
 
@@ -168,15 +229,7 @@ const registrarUsuario = async () => {
         alert('Usuario registrado correctamente')
 
         // Limpiar formulario
-        form.value = {
-            email: '',
-            password: '',
-            rut: '',
-            nombre: '',
-            fechaNacimiento: '',
-            comuna: '',
-            empresa: ''
-        }
+        limpiarFormulario()
     } catch (e) {
         console.error('Error completo:', e)
         let errorMessage = 'Error al registrar usuario'
@@ -270,6 +323,117 @@ const registrarUsuario = async () => {
     font-family: var(--font-secondary);
 }
 
+/* Premium Section */
+.premium-section {
+    background: linear-gradient(135deg, rgba(0, 204, 204, 0.1), rgba(28, 148, 224, 0.1));
+    border: 2px solid var(--color-turquesa);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.premium-section h4 {
+    margin: 0 0 1rem 0;
+    color: var(--color-text);
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.premium-option {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.checkbox-label.premium {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    cursor: pointer;
+    padding: 1rem;
+    background: var(--color-surface);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+    transition: all var(--duration-normal) var(--easing-default);
+}
+
+.checkbox-label.premium:hover {
+    border-color: var(--color-turquesa);
+    box-shadow: var(--shadow-md);
+}
+
+.checkbox-label.premium input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--color-turquesa);
+    margin: 0;
+}
+
+.premium-info {
+    flex: 1;
+}
+
+.premium-info strong {
+    color: var(--color-text);
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.premium-info p {
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.premium-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: var(--color-surface);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-turquesa);
+    animation: slideUp var(--duration-normal) var(--easing-default);
+}
+
+.premium-benefits h5 {
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.premium-benefits ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--color-text-secondary);
+}
+
+.premium-benefits li {
+    margin: 0.5rem 0;
+    line-height: 1.4;
+}
+
+.premium-validity {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.premium-validity p {
+    margin: 0.25rem 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.premium-validity strong {
+    color: var(--color-text);
+}
+
 .form-actions {
     display: flex;
     gap: 1rem;
@@ -324,6 +488,14 @@ const registrarUsuario = async () => {
 
     .user-form {
         padding: 1.5rem;
+    }
+
+    .premium-details {
+        grid-template-columns: 1fr;
+    }
+
+    .premium-section {
+        padding: 1rem;
     }
 }
 

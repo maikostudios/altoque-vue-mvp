@@ -18,6 +18,12 @@
                     </button>
                 </li>
                 <li>
+                    <button @click="$emit('changeView', 'vendedores')" class="nav-item"
+                        :class="{ active: currentView === 'vendedores' }">
+                        🧑‍💼 Vendedores
+                    </button>
+                </li>
+                <li>
                     <button @click="$emit('changeView', 'tarjetas')" class="nav-item"
                         :class="{ active: currentView === 'tarjetas' }">
                         💳 Cuentas Bancarias
@@ -157,6 +163,10 @@ defineEmits(['changeView'])
 
 .nav-item:nth-child(6) {
     animation-delay: 0.6s;
+}
+
+.nav-item:nth-child(7) {
+    animation-delay: 0.7s;
 }
 
 @keyframes slideInLeft {
