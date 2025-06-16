@@ -2,7 +2,7 @@
   <div class="app-container">
     <!-- Navbar solo para rutas específicas (no en home) -->
     <nav v-if="showNavbar" class="app-navbar">
-      <h1 class="navbar-title">Altoque App</h1>
+      <h1 class="navbar-title">De Una App</h1>
       <ul class="navbar-menu">
         <li><router-link to="/" class="nav-link">Home</router-link></li>
         <li><router-link to="/login" class="nav-link">Login</router-link></li>

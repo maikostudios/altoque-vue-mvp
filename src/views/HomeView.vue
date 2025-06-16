@@ -2,6 +2,7 @@
     <div class="home">
         <NavbarHome />
         <HeroSectionHome />
+        <TransferCounter />
         <BenefitsSection />
         <FooterHome />
         <WhatsAppButton />
@@ -11,6 +12,7 @@
 <script setup>
 import NavbarHome from '@/components/home/NavbarHome.vue'
 import HeroSectionHome from '@/components/home/HeroSectionHome.vue'
+import TransferCounter from '@/components/home/TransferCounter.vue'
 import BenefitsSection from '@/components/home/BenefitsSection.vue'
 import FooterHome from '@/components/home/FooterHome.vue'
 import WhatsAppButton from '@/components/home/WhatsAppButton.vue'

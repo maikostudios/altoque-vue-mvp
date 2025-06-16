@@ -1,7 +1,14 @@
 // Script para configurar la estructura completa de la base de datos según arquitectura
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { v4 as uuidv4 } from 'uuid';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { v4 as uuidv4 } from "uuid";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAFfjqq8YIfrduQpiYoMLGreId4vhkX08M",
@@ -17,7 +24,7 @@ const db = getFirestore(app);
 
 // Función para generar token único para QR
 function generateSecureToken() {
-  return uuidv4().replace(/-/g, '').substring(0, 12).toUpperCase();
+  return uuidv4().replace(/-/g, "").substring(0, 12).toUpperCase();
 }
 
 async function setupCompleteDatabase() {
@@ -43,8 +50,8 @@ async function setupCompleteDatabase() {
       avatar: null,
       configuraciones: {
         notificaciones: true,
-        tema: "dark"
-      }
+        tema: "dark",
+      },
     });
 
     // 2. Crear vendedores de ejemplo
@@ -59,10 +66,10 @@ async function setupCompleteDatabase() {
         comuna: "Santiago",
         region: "Metropolitana",
         metaMensual: 50,
-        usuariosRegistrados: 12
+        usuariosRegistrados: 12,
       },
       {
-        email: "vendedor2@altoque.com", 
+        email: "vendedor2@altoque.com",
         nombre: "Ana",
         apellido: "Comercial",
         rut: "98765432-1",
@@ -70,8 +77,8 @@ async function setupCompleteDatabase() {
         comuna: "Valparaíso",
         region: "Valparaíso",
         metaMensual: 30,
-        usuariosRegistrados: 8
-      }
+        usuariosRegistrados: 8,
+      },
     ];
 
     for (const vendedor of vendedores) {
@@ -85,8 +92,8 @@ async function setupCompleteDatabase() {
         avatar: null,
         configuraciones: {
           notificaciones: true,
-          tema: "dark"
-        }
+          tema: "dark",
+        },
       });
     }
 
@@ -102,19 +109,19 @@ async function setupCompleteDatabase() {
         comuna: "Santiago",
         region: "Metropolitana",
         tipoPlan: "gratuito",
-        limiteTarjetas: 1
+        limiteTarjetas: 1,
       },
       {
         email: "usuario2@example.com",
         nombre: "María",
-        apellido: "González", 
+        apellido: "González",
         rut: "22222222-2",
         telefono: "+56922222222",
         comuna: "Concepción",
         region: "Biobío",
         tipoPlan: "premium",
-        limiteTarjetas: 10
-      }
+        limiteTarjetas: 10,
+      },
     ];
 
     for (const usuario of usuarios) {
@@ -128,8 +135,8 @@ async function setupCompleteDatabase() {
         avatar: null,
         configuraciones: {
           notificaciones: true,
-          tema: "dark"
-        }
+          tema: "dark",
+        },
       });
     }
 
@@ -150,7 +157,7 @@ async function setupCompleteDatabase() {
         imagen: null,
         qrToken: generateSecureToken(),
         activa: true,
-        publica: true
+        publica: true,
       },
       {
         propietarioEmail: "usuario2@example.com",
@@ -166,8 +173,8 @@ async function setupCompleteDatabase() {
         imagen: null,
         qrToken: generateSecureToken(),
         activa: true,
-        publica: true
-      }
+        publica: true,
+      },
     ];
 
     for (const tarjeta of tarjetas) {
@@ -176,7 +183,7 @@ async function setupCompleteDatabase() {
         fechaCreacion: serverTimestamp(),
         fechaActualizacion: serverTimestamp(),
         vistas: 0,
-        transferenciasRealizadas: 0
+        transferenciasRealizadas: 0,
       });
     }
 
@@ -189,20 +196,20 @@ async function setupCompleteDatabase() {
       totalTransferencias: 0,
       usuariosActivos: 4,
       tarjetasActivas: 2,
-      fechaActualizacion: serverTimestamp()
+      fechaActualizacion: serverTimestamp(),
     });
 
     // 6. Crear configuraciones del sistema actualizadas
     console.log("⚙️ Creando configuraciones del sistema...");
     await setDoc(doc(db, "settings", "general"), {
-      nombreApp: "Altoque",
+      nombreApp: "De Una",
       descripcion: "Plataforma de transferencias bancarias con QR",
       emailContacto: "maikostudios@gmail.com",
       telefonoWhatsApp: "+56912345678",
       modoMantenimiento: false,
       version: "1.0.0",
-      urlBase: "https://altoque.web.app",
-      fechaActualizacion: serverTimestamp()
+      urlBase: "https://deuna.web.app",
+      fechaActualizacion: serverTimestamp(),
     });
 
     await setDoc(doc(db, "settings", "plans"), {
@@ -211,15 +218,15 @@ async function setupCompleteDatabase() {
         limiteTarjetas: 1,
         estadisticas: false,
         soporte: "email",
-        precio: 0
+        precio: 0,
       },
       premium: {
         nombre: "Plan Premium",
         limiteTarjetas: 10,
         estadisticas: true,
         soporte: "prioritario",
-        precio: 9990
-      }
+        precio: 9990,
+      },
     });
 
     await setDoc(doc(db, "settings", "design"), {
@@ -228,17 +235,17 @@ async function setupCompleteDatabase() {
         turquesa: "#00cccc",
         azul: "#1c94e0",
         texto: "#ffffff",
-        textoSecundario: "#cccccc"
+        textoSecundario: "#cccccc",
       },
       tipografia: {
         principal: "Montserrat",
         secundaria: "Roboto",
-        terciaria: "Raleway"
+        terciaria: "Raleway",
       },
       animaciones: {
         duracion: "300ms",
-        easing: "ease-in-out"
-      }
+        easing: "ease-in-out",
+      },
     });
 
     // 7. Crear logs de auditoría
@@ -248,20 +255,20 @@ async function setupCompleteDatabase() {
         accion: "system_init",
         usuario: "system",
         descripcion: "Sistema inicializado correctamente",
-        nivel: "info"
+        nivel: "info",
       },
       {
         accion: "admin_created",
-        usuario: "system", 
+        usuario: "system",
         descripcion: "Usuario administrador creado",
-        nivel: "info"
+        nivel: "info",
       },
       {
         accion: "database_setup",
         usuario: "system",
         descripcion: "Base de datos configurada completamente",
-        nivel: "info"
-      }
+        nivel: "info",
+      },
     ];
 
     for (const log of logs) {
@@ -269,7 +276,7 @@ async function setupCompleteDatabase() {
         ...log,
         timestamp: serverTimestamp(),
         ip: "127.0.0.1",
-        userAgent: "Setup Script"
+        userAgent: "Setup Script",
       });
     }
 
@@ -282,7 +289,6 @@ async function setupCompleteDatabase() {
     console.log("- 📊 Métricas globales");
     console.log("- ⚙️ Configuraciones completas");
     console.log("- 📋 Logs de auditoría");
-
   } catch (error) {
     console.error("❌ Error configurando base de datos:", error);
   }

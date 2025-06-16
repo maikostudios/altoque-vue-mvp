@@ -98,6 +98,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import QRCode from 'qrcode'
+import { incrementTransferCounter } from '@/store/transferCounter'
 
 const props = defineProps({
     userInfo: {
@@ -174,6 +175,8 @@ const copiarEnlace = async () => {
     try {
         await navigator.clipboard.writeText(qrUrl.value)
         alert('Enlace copiado al portapapeles')
+        // Incrementar contador global de transferencias
+        incrementTransferCounter()
     } catch (error) {
         console.error('Error copiando enlace:', error)
         // Fallback para navegadores que no soportan clipboard API
@@ -184,6 +187,8 @@ const copiarEnlace = async () => {
         document.execCommand('copy')
         document.body.removeChild(textArea)
         alert('Enlace copiado al portapapeles')
+        // Incrementar contador global de transferencias
+        incrementTransferCounter()
     }
 }
 

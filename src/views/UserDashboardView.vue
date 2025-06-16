@@ -359,6 +359,7 @@ import { db } from '@/firebase'
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import BankCardForm from '@/components/user/BankCardForm.vue'
 import QRModal from '@/components/user/QRModal.vue'
+import { incrementTransferCounter } from '@/store/transferCounter'
 
 const authStore = useAuthStore()
 const loading = ref(true)
@@ -586,6 +587,8 @@ const copiarEnlace = () => {
     const enlace = `${window.location.origin}/linktransferencia?tkn=${userInfo.value.tokenPublico}`
     navigator.clipboard.writeText(enlace)
     alert('Enlace público copiado al portapapeles')
+    // Incrementar contador global de transferencias
+    incrementTransferCounter()
 }
 
 const guardarTarjeta = async (formData) => {

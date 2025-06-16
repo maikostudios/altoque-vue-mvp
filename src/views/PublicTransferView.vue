@@ -159,7 +159,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Powered by <strong>Altoque</strong> - Transferencias Seguras</p>
+            <p>Powered by <strong>De Una</strong> - Transferencias Seguras</p>
         </div>
     </div>
 </template>
@@ -169,6 +169,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { db } from '@/firebase'
 import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore'
+import { incrementTransferCounter } from '@/store/transferCounter'
 
 const route = useRoute()
 const loading = ref(true)
@@ -316,6 +317,8 @@ const copyToClipboard = async (text) => {
     try {
         await navigator.clipboard.writeText(text)
         showCopyFeedback()
+        // Incrementar contador global de transferencias
+        incrementTransferCounter()
     } catch (error) {
         // Fallback para navegadores que no soportan clipboard API
         const textArea = document.createElement('textarea')
@@ -325,6 +328,8 @@ const copyToClipboard = async (text) => {
         document.execCommand('copy')
         document.body.removeChild(textArea)
         showCopyFeedback()
+        // Incrementar contador global de transferencias
+        incrementTransferCounter()
     }
 }
 
@@ -349,6 +354,7 @@ Tipo de cuenta: ${selectedCard.value.tipoCuenta}
 Número de cuenta: ${formatAccountNumber(selectedCard.value.numeroCuenta)}
 ${selectedCard.value.emailTitular ? `Correo: ${selectedCard.value.emailTitular.toLowerCase()}` : ''}`
 
+    // Usar la función copyToClipboard que ya incrementa el contador
     copyToClipboard(allData)
 }
 

@@ -29,11 +29,15 @@ defineProps({
     },
 });
 
+import { incrementTransferCounter } from '@/store/transferCounter'
+
 // Función para copiar al portapapeles
 const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(
         () => {
             alert("Número de cuenta copiado al portapapeles.");
+            // Incrementar contador global de transferencias
+            incrementTransferCounter();
         },
         () => {
             alert("Error al copiar el número de cuenta.");

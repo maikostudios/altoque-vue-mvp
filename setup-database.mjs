@@ -1,6 +1,13 @@
 // Script para configurar la estructura inicial de la base de datos
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAFfjqq8YIfrduQpiYoMLGreId4vhkX08M",
@@ -34,7 +41,7 @@ async function setupDatabase() {
       fechaRegistro: serverTimestamp(),
       estado: "activo",
       ultimoAcceso: serverTimestamp(),
-      creadoPor: "system"
+      creadoPor: "system",
     });
 
     // 2. Crear usuarios de ejemplo
@@ -50,7 +57,7 @@ async function setupDatabase() {
         comuna: "Santiago",
         region: "Metropolitana",
         fechaNacimiento: new Date("1990-05-15"),
-        estado: "activo"
+        estado: "activo",
       },
       {
         email: "maria.gonzalez@example.com",
@@ -62,7 +69,7 @@ async function setupDatabase() {
         comuna: "Valparaíso",
         region: "Valparaíso",
         fechaNacimiento: new Date("1985-08-22"),
-        estado: "activo"
+        estado: "activo",
       },
       {
         email: "carlos.rodriguez@example.com",
@@ -74,8 +81,8 @@ async function setupDatabase() {
         comuna: "Concepción",
         region: "Biobío",
         fechaNacimiento: new Date("1992-12-03"),
-        estado: "inactivo"
-      }
+        estado: "inactivo",
+      },
     ];
 
     for (const usuario of usuariosEjemplo) {
@@ -83,7 +90,7 @@ async function setupDatabase() {
         ...usuario,
         fechaRegistro: serverTimestamp(),
         ultimoAcceso: serverTimestamp(),
-        creadoPor: "admin"
+        creadoPor: "admin",
       });
     }
 
@@ -97,7 +104,7 @@ async function setupDatabase() {
         titularCuenta: "Juan Pérez",
         rutTitular: "12345678-9",
         estado: "activa",
-        saldo: 1500000
+        saldo: 1500000,
       },
       {
         nombreBanco: "Banco Santander",
@@ -106,7 +113,7 @@ async function setupDatabase() {
         titularCuenta: "María González",
         rutTitular: "98765432-1",
         estado: "activa",
-        saldo: 850000
+        saldo: 850000,
       },
       {
         nombreBanco: "Banco Estado",
@@ -115,8 +122,8 @@ async function setupDatabase() {
         titularCuenta: "Carlos Rodríguez",
         rutTitular: "11223344-5",
         estado: "bloqueada",
-        saldo: 320000
-      }
+        saldo: 320000,
+      },
     ];
 
     for (const cuenta of cuentasBancarias) {
@@ -124,7 +131,7 @@ async function setupDatabase() {
         ...cuenta,
         fechaCreacion: serverTimestamp(),
         fechaActualizacion: serverTimestamp(),
-        creadoPor: "admin"
+        creadoPor: "admin",
       });
     }
 
@@ -136,14 +143,14 @@ async function setupDatabase() {
         monto: 100000,
         descripcion: "Depósito inicial",
         cuentaOrigen: "12345678",
-        estado: "completada"
+        estado: "completada",
       },
       {
         tipo: "retiro",
         monto: 50000,
         descripcion: "Retiro cajero automático",
         cuentaOrigen: "87654321",
-        estado: "completada"
+        estado: "completada",
       },
       {
         tipo: "transferencia",
@@ -151,8 +158,8 @@ async function setupDatabase() {
         descripcion: "Transferencia entre cuentas",
         cuentaOrigen: "12345678",
         cuentaDestino: "11223344",
-        estado: "pendiente"
-      }
+        estado: "pendiente",
+      },
     ];
 
     for (const transaccion of transacciones) {
@@ -160,18 +167,18 @@ async function setupDatabase() {
         ...transaccion,
         fechaTransaccion: serverTimestamp(),
         fechaCreacion: serverTimestamp(),
-        procesadoPor: "system"
+        procesadoPor: "system",
       });
     }
 
     // 5. Crear configuraciones del sistema
     console.log("⚙️ Creando configuraciones del sistema...");
     await setDoc(doc(db, "settings", "general"), {
-      nombreApp: "Altoque App",
-      emailContacto: "admin@altoque.com",
+      nombreApp: "De Una App",
+      emailContacto: "admin@deuna.com",
       modoMantenimiento: false,
       version: "1.0.0",
-      fechaActualizacion: serverTimestamp()
+      fechaActualizacion: serverTimestamp(),
     });
 
     await setDoc(doc(db, "settings", "security"), {
@@ -179,15 +186,15 @@ async function setupDatabase() {
       autenticacionDosFactor: false,
       logsAuditoria: true,
       intentosMaximoLogin: 5,
-      fechaActualizacion: serverTimestamp()
+      fechaActualizacion: serverTimestamp(),
     });
 
     await setDoc(doc(db, "settings", "notifications"), {
       notificacionesEmail: true,
       notificacionesPush: false,
       frecuenciaReportes: "semanal",
-      emailReportes: "reports@altoque.com",
-      fechaActualizacion: serverTimestamp()
+      emailReportes: "reports@deuna.com",
+      fechaActualizacion: serverTimestamp(),
     });
 
     // 6. Crear logs de auditoría de ejemplo
@@ -198,29 +205,29 @@ async function setupDatabase() {
         usuario: "maikostudios@gmail.com",
         descripcion: "Usuario admin inició sesión",
         ip: "192.168.1.100",
-        userAgent: "Mozilla/5.0..."
+        userAgent: "Mozilla/5.0...",
       },
       {
         accion: "create_user",
         usuario: "maikostudios@gmail.com",
         descripcion: "Creó nuevo usuario: juan.perez@example.com",
         ip: "192.168.1.100",
-        userAgent: "Mozilla/5.0..."
+        userAgent: "Mozilla/5.0...",
       },
       {
         accion: "update_settings",
         usuario: "maikostudios@gmail.com",
         descripcion: "Actualizó configuraciones de seguridad",
         ip: "192.168.1.100",
-        userAgent: "Mozilla/5.0..."
-      }
+        userAgent: "Mozilla/5.0...",
+      },
     ];
 
     for (const log of logsAuditoria) {
       await addDoc(collection(db, "audit_logs"), {
         ...log,
         timestamp: serverTimestamp(),
-        nivel: "info"
+        nivel: "info",
       });
     }
 
@@ -231,7 +238,6 @@ async function setupDatabase() {
     console.log("- 💰 3 transacciones de ejemplo");
     console.log("- ⚙️ Configuraciones del sistema");
     console.log("- 📋 3 logs de auditoría");
-
   } catch (error) {
     console.error("❌ Error configurando base de datos:", error);
   }

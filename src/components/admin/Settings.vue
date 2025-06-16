@@ -8,11 +8,11 @@
                 <h3>🔧 Configuraciones Generales</h3>
                 <div class="setting-item">
                     <label>Nombre de la aplicación:</label>
-                    <input type="text" value="Altoque App" class="setting-input">
+                    <input type="text" value="De Una App" class="setting-input">
                 </div>
                 <div class="setting-item">
                     <label>Email de contacto:</label>
-                    <input type="email" value="admin@altoque.com" class="setting-input">
+                    <input type="email" value="admin@deuna.com" class="setting-input">
                 </div>
                 <div class="setting-item">
                     <label>Modo mantenimiento:</label>
