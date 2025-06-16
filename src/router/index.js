@@ -32,6 +32,18 @@ const routes = [
     meta: { requiresAuth: true, role: "vendedor" },
   },
   {
+    path: "/usuario",
+    name: "Usuario",
+    component: () => import("../views/UserDashboardView.vue"),
+    meta: { requiresAuth: true, role: "usuario" },
+  },
+  {
+    path: "/linktransferencia",
+    name: "LinkTransferencia",
+    component: () => import("../views/PublicTransferView.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
     path: "/u/:username",
     name: "PublicLanding",
     component: () => import("../views/PublicLandingView.vue"),
@@ -97,7 +109,11 @@ router.beforeEach(async (to, from, next) => {
       console.log("Redirigiendo vendedor a /vendedor");
       return next("/vendedor");
     }
-    console.log("Redirigiendo usuario normal a /dashboard");
+    if (authStore.role === "usuario") {
+      console.log("Redirigiendo usuario a /usuario");
+      return next("/usuario");
+    }
+    console.log("Redirigiendo usuario por defecto a /dashboard");
     return next("/dashboard");
   }
 

@@ -56,8 +56,11 @@ const handleLogin = async ({ email, password }) => {
             } else if (authStore.role === "vendedor") {
                 console.log("✅ Redirigiendo VENDEDOR a /vendedor");
                 await router.push("/vendedor");
+            } else if (authStore.role === "usuario") {
+                console.log("✅ Redirigiendo USUARIO a /usuario");
+                await router.push("/usuario");
             } else {
-                console.log("✅ Redirigiendo USER a /dashboard, rol:", authStore.role);
+                console.log("✅ Redirigiendo USER por defecto a /dashboard, rol:", authStore.role);
                 await router.push("/dashboard");
             }
         } else {

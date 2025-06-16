@@ -83,12 +83,25 @@ const showNotification = (type, message) => {
 .admin-panel {
     display: flex;
     min-height: 100vh;
-    background: #f5f6fa;
+    background: var(--color-background);
+    font-family: var(--font-primary);
 }
 
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+}
+
+/* Animación de entrada */
+.admin-panel {
+    animation: fadeIn var(--duration-normal) var(--easing-default);
+}
+
+@media (max-width: 768px) {
+    .admin-panel {
+        flex-direction: column;
+    }
 }
 </style>

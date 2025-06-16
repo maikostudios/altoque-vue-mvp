@@ -1,0 +1,321 @@
+/* Importar fuentes de Google */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+
+/* Variables CSS del tema */
+:root {
+  /* Colores principales */
+  --color-background: #121212;
+  --color-surface: #1e1e1e;
+  --color-surface-variant: #2a2a2a;
+  
+  /* Colores de marca */
+  --color-turquesa: #00cccc;
+  --color-azul: #1c94e0;
+  
+  /* Colores de texto */
+  --color-text: #ffffff;
+  --color-text-secondary: #cccccc;
+  --color-text-muted: #999999;
+  
+  /* Estados */
+  --color-success: #00cc88;
+  --color-warning: #ffaa00;
+  --color-error: #ff4444;
+  --color-info: #00cccc;
+  
+  /* Sombras y bordes */
+  --color-border: #333333;
+  --color-shadow: rgba(0, 204, 204, 0.2);
+  --color-shadow-hover: rgba(0, 204, 204, 0.4);
+  
+  /* Tipografía */
+  --font-primary: 'Montserrat', sans-serif;
+  --font-secondary: 'Roboto', sans-serif;
+  --font-tertiary: 'Raleway', sans-serif;
+  
+  /* Animaciones */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 204, 204, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 204, 204, 0.1), 0 2px 4px -1px rgba(0, 204, 204, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 204, 204, 0.1), 0 4px 6px -2px rgba(0, 204, 204, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 204, 204, 0.1), 0 10px 10px -5px rgba(0, 204, 204, 0.04);
+  --shadow-glow: 0 0 20px rgba(0, 204, 204, 0.3);
+}
+
+/* Reset y estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Estilos para elementos base */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-primary);
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+}
+
+a {
+  color: var(--color-turquesa);
+  text-decoration: none;
+  transition: color var(--duration-normal) var(--easing-default);
+}
+
+a:hover {
+  color: var(--color-azul);
+}
+
+/* Botones base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 1.5rem;
+  font-family: var(--font-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--easing-default);
+  text-decoration: none;
+  gap: 0.5rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-turquesa), var(--color-azul));
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-variant);
+  border-color: var(--color-turquesa);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-turquesa);
+  border: 1px solid var(--color-turquesa);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-turquesa);
+  color: var(--color-background);
+}
+
+/* Cards */
+.card {
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  transition: all var(--duration-normal) var(--easing-default);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-turquesa);
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  color: var(--color-text);
+  font-family: var(--font-secondary);
+  font-size: 0.875rem;
+  transition: all var(--duration-normal) var(--easing-default);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-turquesa);
+  box-shadow: 0 0 0 3px rgba(0, 204, 204, 0.1);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Animaciones utilitarias */
+.animate-fade-in {
+  animation: fadeIn var(--duration-normal) var(--easing-default);
+}
+
+.animate-slide-up {
+  animation: slideUp var(--duration-normal) var(--easing-default);
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--duration-normal) var(--easing-default);
+}
+
+/* Transiciones */
+.transition-all {
+  transition: all var(--duration-normal) var(--easing-default);
+}
+
+.transition-colors {
+  transition: color var(--duration-normal) var(--easing-default),
+              background-color var(--duration-normal) var(--easing-default),
+              border-color var(--duration-normal) var(--easing-default);
+}
+
+.transition-transform {
+  transition: transform var(--duration-normal) var(--easing-default);
+}
+
+/* Hover effects */
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Layout utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-turquesa);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-azul);
+}

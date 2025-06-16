@@ -2,7 +2,19 @@
     <div class="dashboard-stats">
         <h2>📊 Dashboard de Estadísticas</h2>
 
-        <div class="stats-grid">
+        <!-- Loading state -->
+        <div v-if="loading" class="loading-state">
+            <p>⏳ Cargando estadísticas...</p>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="error" class="error-state">
+            <p>❌ {{ error }}</p>
+            <button @click="loadStats" class="retry-btn">🔄 Reintentar</button>
+        </div>
+
+        <!-- Stats content -->
+        <div v-else class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
                 <div class="stat-content">
@@ -30,8 +42,8 @@
             <div class="stat-card">
                 <div class="stat-icon">💰</div>
                 <div class="stat-content">
-                    <h3>Ingresos</h3>
-                    <p class="stat-number">${{ stats.revenue }}</p>
+                    <h3>Saldo Total</h3>
+                    <p class="stat-number">{{ formatCurrency(stats.revenue) }}</p>
                 </div>
             </div>
         </div>
@@ -58,6 +70,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { userService } from '@/services/userService'
+import { bankAccountService } from '@/services/bankAccountService'
 
 const stats = ref({
     totalUsers: 0,
@@ -66,16 +80,51 @@ const stats = ref({
     revenue: 0
 })
 
-onMounted(() => {
-    // Simular carga de datos
-    setTimeout(() => {
+const loading = ref(true)
+const error = ref(null)
+
+const loadStats = async () => {
+    try {
+        loading.value = true
+        error.value = null
+
+        // Cargar estadísticas de usuarios
+        const userStats = await userService.getUserStats()
+
+        // Cargar estadísticas de cuentas bancarias
+        const bankStats = await bankAccountService.getBankAccountStats()
+
         stats.value = {
-            totalUsers: 1247,
-            bankAccounts: 89,
-            transactions: 3456,
-            revenue: 125430
+            totalUsers: userStats.total,
+            bankAccounts: bankStats.total,
+            transactions: 0, // TODO: Implementar servicio de transacciones
+            revenue: bankStats.saldoTotal
         }
-    }, 500)
+    } catch (err) {
+        console.error('Error cargando estadísticas:', err)
+        error.value = 'Error cargando estadísticas'
+
+        // Datos de fallback
+        stats.value = {
+            totalUsers: 0,
+            bankAccounts: 0,
+            transactions: 0,
+            revenue: 0
+        }
+    } finally {
+        loading.value = false
+    }
+}
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP'
+    }).format(amount || 0)
+}
+
+onMounted(() => {
+    loadStats()
 })
 </script>
 
@@ -166,5 +215,42 @@ onMounted(() => {
 
 .activity-text {
     color: #2c3e50;
+}
+
+.loading-state,
+.error-state {
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin: 2rem 0;
+}
+
+.loading-state p {
+    color: #3498db;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.error-state p {
+    color: #e74c3c;
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+}
+
+.retry-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.3s ease;
+}
+
+.retry-btn:hover {
+    background: #2980b9;
 }
 </style>
