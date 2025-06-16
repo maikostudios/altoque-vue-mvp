@@ -6,7 +6,7 @@ import pinia from "./store";
 import "./style.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { loadFonts } from "./plugins/webfontloader";
-import "./firebase"; // Importar Firebase para inicializarlo
+import "./firebase.js"; // Importar Firebase para inicializarlo
 
 const app = createApp(App);
 app.use(vuetify);

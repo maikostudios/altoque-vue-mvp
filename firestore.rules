@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función para verificar si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Función para verificar si el usuario es admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Función para verificar si el usuario es vendedor
+    function isVendedor() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendedor';
+    }
+    
+    // Función para verificar si es el propio usuario
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Reglas para la colección de usuarios
+    match /users/{userId} {
+      // Los admins pueden leer y escribir todos los usuarios
+      allow read, write: if isAdmin();
+      
+      // Los vendedores pueden leer usuarios
+      allow read: if isVendedor();
+      
+      // Los usuarios pueden leer y actualizar su propia información
+      allow read, update: if isOwner(userId);
+      
+      // Permitir creación de usuarios (para registro)
+      allow create: if isAuthenticated();
+    }
+    
+    // Reglas para cuentas bancarias
+    match /bank_accounts/{accountId} {
+      // Los admins tienen acceso completo
+      allow read, write: if isAdmin();
+      
+      // Los vendedores pueden leer
+      allow read: if isVendedor();
+      
+      // Los usuarios pueden leer sus propias cuentas
+      allow read: if isAuthenticated() && 
+                     resource.data.rutTitular == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rut;
+    }
+    
+    // Reglas para transacciones
+    match /transactions/{transactionId} {
+      // Los admins tienen acceso completo
+      allow read, write: if isAdmin();
+      
+      // Los vendedores pueden leer
+      allow read: if isVendedor();
+      
+      // Los usuarios pueden leer sus propias transacciones
+      allow read: if isAuthenticated();
+      
+      // Permitir crear transacciones para usuarios autenticados
+      allow create: if isAuthenticated();
+    }
+    
+    // Reglas para configuraciones del sistema
+    match /settings/{settingId} {
+      // Solo los admins pueden leer y escribir configuraciones
+      allow read, write: if isAdmin();
+    }
+    
+    // Reglas para logs de auditoría
+    match /audit_logs/{logId} {
+      // Solo los admins pueden leer logs
+      allow read: if isAdmin();
+      
+      // Permitir crear logs (para el sistema)
+      allow create: if isAuthenticated();
+    }
+    
+    // Regla temporal para desarrollo (REMOVER EN PRODUCCIÓN)
+    // Permite acceso completo para testing
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

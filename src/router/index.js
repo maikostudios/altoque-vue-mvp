@@ -85,8 +85,19 @@ router.beforeEach(async (to, from, next) => {
 
   // Redirigir según el rol si ya está autenticado e intenta ir a login
   if (to.path === "/login" && isAuthenticated) {
-    if (authStore.role === "admin") return next("/admin");
-    if (authStore.role === "vendedor") return next("/vendedor");
+    console.log(
+      "Usuario autenticado intentando ir a login, rol:",
+      authStore.role
+    );
+    if (authStore.role === "admin") {
+      console.log("Redirigiendo admin a /admin");
+      return next("/admin");
+    }
+    if (authStore.role === "vendedor") {
+      console.log("Redirigiendo vendedor a /vendedor");
+      return next("/vendedor");
+    }
+    console.log("Redirigiendo usuario normal a /dashboard");
     return next("/dashboard");
   }
 

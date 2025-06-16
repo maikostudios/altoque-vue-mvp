@@ -7,7 +7,7 @@
         @close="notificationMessage = ''" />
 
     <div class="admin-panel">
-        <SidebarMenu @changeView="changeView" />
+        <SidebarMenu :currentView="currentView" @changeView="changeView" />
         <div class="main-content">
             <HeaderPanel @logout="handleLogout" />
             <component :is="currentComponent" @show-notification="showNotification" />
@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import SidebarMenu from '@/components/admin/SidebarMenu.vue'
 import HeaderPanel from '@/components/admin/HeaderPanel.vue'
 
@@ -32,9 +32,6 @@ import DemographicsData from '@/components/admin/DemographicsData.vue'
 import StatisticsGraphs from '@/components/admin/StatisticsGraphs.vue'
 import Settings from '@/components/admin/Settings.vue'
 import Notification from "../components/Notification.vue";
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
-import { auth, db } from '@/firebase'
 
 const currentView = ref('dashboard')
 
@@ -53,8 +50,19 @@ function changeView(view) {
     currentView.value = view
 }
 
-function handleLogout() {
-    // cerrar sesión en Firebase
+async function handleLogout() {
+    try {
+        const { useAuthStore } = await import('@/store/auth')
+        const { useRouter } = await import('vue-router')
+
+        const authStore = useAuthStore()
+        const router = useRouter()
+
+        await authStore.logout()
+        router.push('/login')
+    } catch (error) {
+        console.error('Error al cerrar sesión:', error)
+    }
 }
 
 // Mensaje y tipo de notificación
@@ -67,14 +75,20 @@ const showNotification = (type, message) => {
     notificationMessage.value = message;
 };
 
-//Registrar nuevo usuario
-const registrarUsuario = async (email, password, role) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password)
-    await setDoc(doc(db, 'usuarios', cred.user.uid), {
-        email,
-        role
-    })
-}
-showNotification("success", "Usuario registrado con éxito");
+// Funciones adicionales pueden ir aquí
 
 </script>
+
+<style scoped>
+.admin-panel {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f6fa;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+</style>
