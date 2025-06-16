@@ -106,8 +106,11 @@ const form = ref({
     password: '',
     rut: '',
     nombre: '',
+    apellido: '',
     fechaNacimiento: '',
     comuna: '',
+    region: '',
+    telefono: '',
     empresa: ''
 })
 
@@ -117,8 +120,11 @@ const limpiarFormulario = () => {
         password: '',
         rut: '',
         nombre: '',
+        apellido: '',
         fechaNacimiento: '',
         comuna: '',
+        region: '',
+        telefono: '',
         empresa: ''
     }
 }
