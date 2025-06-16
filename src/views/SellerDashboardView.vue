@@ -358,6 +358,9 @@ const registrarUsuarioCompleto = async () => {
         const uid = userCredential.user.uid
         console.log('Usuario creado en Auth:', uid)
 
+        // Generar token público único (16+ caracteres aleatorios)
+        const tokenPublico = generatePublicToken()
+
         // Calcular fechas para Premium
         const fechaRegistro = new Date()
         const fechaVencimientoPremiumDate = completeForm.value.esPremium ?
@@ -384,6 +387,9 @@ const registrarUsuarioCompleto = async () => {
             region: completeForm.value.region,
             empresa: completeForm.value.empresa,
 
+            // Token público único para QR
+            tokenPublico: tokenPublico,
+
             // Plan y permisos
             tipoPlan: completeForm.value.esPremium ? 'premium' : 'gratuito',
             esPremium: completeForm.value.esPremium,
@@ -400,7 +406,7 @@ const registrarUsuarioCompleto = async () => {
             creadoPor: 'vendedor'
         })
 
-        console.log('Usuario guardado en Firestore')
+        console.log('Usuario guardado en Firestore con token:', tokenPublico)
         alert('Usuario registrado exitosamente')
         closeModal()
         await refreshData()
@@ -421,6 +427,16 @@ const registrarUsuarioCompleto = async () => {
     } finally {
         submitting.value = false
     }
+}
+
+// Generar token público seguro (mínimo 16 caracteres)
+const generatePublicToken = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let token = 'tkn_'
+    for (let i = 0; i < 20; i++) {
+        token += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return token
 }
 
 const closeModal = () => {

@@ -180,6 +180,16 @@ function formatRut(rut) {
         .replace(/^(\d{1,2})(\d{3})(\d{3})([kK\d])$/, '$1.$2.$3-$4')
 }
 
+// Generar token público seguro (mínimo 16 caracteres)
+const generatePublicToken = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let token = 'tkn_'
+    for (let i = 0; i < 20; i++) {
+        token += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return token
+}
+
 const registrarUsuario = async () => {
     try {
         submitting.value = true
@@ -189,6 +199,9 @@ const registrarUsuario = async () => {
         const cred = await createUserWithEmailAndPassword(auth, form.value.email, form.value.password)
         const uid = cred.user.uid
         console.log('Usuario creado en Auth:', uid)
+
+        // Generar token público único (16+ caracteres aleatorios)
+        const tokenPublico = generatePublicToken()
 
         // Calcular fechas para Premium
         const fechaRegistro = new Date()
@@ -208,6 +221,9 @@ const registrarUsuario = async () => {
             region: form.value.region,
             empresa: form.value.empresa,
             role: 'usuario', // Usar 'role' en lugar de 'rol'
+
+            // Token público único para QR
+            tokenPublico: tokenPublico,
 
             // Plan y permisos
             tipoPlan: form.value.esPremium ? 'premium' : 'gratuito',

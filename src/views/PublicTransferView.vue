@@ -1,157 +1,367 @@
 <template>
     <div class="public-transfer">
-        <div class="container">
-            <!-- Header -->
-            <header class="transfer-header">
-                <h1 class="app-title">Altoque</h1>
-                <p class="subtitle">Transferencia Bancaria</p>
-            </header>
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-container">
+            <div class="spinner-large"></div>
+            <p>Cargando información...</p>
+        </div>
 
-            <!-- Loading state -->
-            <div v-if="loading" class="loading-state">
-                <div class="spinner"></div>
-                <p>Cargando información...</p>
+        <!-- Error State -->
+        <div v-else-if="error" class="error-container">
+            <div class="error-icon">❌</div>
+            <h2>Token no válido</h2>
+            <p>El enlace que has seguido no es válido o ha expirado.</p>
+            <p>Por favor, verifica el enlace o contacta al propietario.</p>
+        </div>
+
+        <!-- Success State -->
+        <div v-else-if="userInfo && tarjetas.length > 0" class="transfer-content">
+            <!-- Header del usuario -->
+            <div class="user-header">
+                <div class="user-avatar">
+                    <div class="avatar-placeholder">
+                        {{ userInfo.nombre?.charAt(0) || '?' }}{{ userInfo.apellido?.charAt(0) || '' }}
+                    </div>
+                </div>
+                <div class="user-info">
+                    <h1>{{ userInfo.nombre }} {{ userInfo.apellido }}</h1>
+                    <p v-if="userInfo.empresa" class="user-company">{{ userInfo.empresa }}</p>
+                    <p class="user-description">Selecciona una opción para transferir</p>
+                </div>
+                <div v-if="userInfo.esPremium" class="premium-badge">
+                    ⭐ Premium
+                </div>
             </div>
 
-            <!-- Error state -->
-            <div v-else-if="error" class="error-state">
-                <div class="error-icon">❌</div>
-                <h2>Error</h2>
-                <p>{{ error }}</p>
-                <button @click="retry" class="btn btn-primary">Reintentar</button>
-            </div>
+            <!-- Tarjetas bancarias -->
+            <div class="cards-section">
+                <h2>💳 Opciones de Transferencia</h2>
+                <div class="cards-grid">
+                    <div v-for="tarjeta in tarjetasActivas" :key="tarjeta.id" class="bank-card"
+                        :style="{ background: getCardGradient(tarjeta.colorTema) }" @click="selectCard(tarjeta)">
+                        <div class="card-header">
+                            <h3>{{ tarjeta.tituloPersonalizado || tarjeta.nombreTarjeta }}</h3>
+                            <div class="bank-logo">{{ tarjeta.banco }}</div>
+                        </div>
 
-            <!-- Transfer card -->
-            <div v-else-if="transferData" class="transfer-card">
-                <div class="card-header">
-                    <div class="user-avatar">
-                        <img v-if="transferData.imagen" :src="transferData.imagen" :alt="transferData.nombreTitular">
-                        <div v-else class="avatar-placeholder">
-                            {{ transferData.nombreTitular?.charAt(0) || '?' }}
+                        <div class="card-body">
+                            <div class="card-info">
+                                <p><strong>Tipo:</strong> {{ tarjeta.tipoCuenta }}</p>
+                                <p><strong>Banco:</strong> {{ tarjeta.banco }}</p>
+                                <p><strong>Titular:</strong> {{ tarjeta.nombreTitular }}</p>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <span class="tap-hint">👆 Toca para ver datos</span>
                         </div>
                     </div>
-                    <div class="user-info">
-                        <h2>{{ transferData.nombreTitular }}</h2>
-                        <p v-if="transferData.descripcion">{{ transferData.descripcion }}</p>
-                    </div>
-                </div>
-
-                <div class="bank-details">
-                    <div class="detail-item">
-                        <span class="label">Banco:</span>
-                        <span class="value">{{ transferData.banco }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Tipo de cuenta:</span>
-                        <span class="value">{{ transferData.tipoCuenta }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Número de cuenta:</span>
-                        <span class="value">{{ transferData.numeroCuenta }}</span>
-                        <button @click="copyToClipboard(transferData.numeroCuenta)" class="copy-btn">
-                            📋
-                        </button>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">RUT:</span>
-                        <span class="value">{{ transferData.rutTitular }}</span>
-                        <button @click="copyToClipboard(transferData.rutTitular)" class="copy-btn">
-                            📋
-                        </button>
-                    </div>
-                    <div v-if="transferData.telefono" class="detail-item">
-                        <span class="label">Teléfono:</span>
-                        <span class="value">{{ transferData.telefono }}</span>
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button @click="copyAllData" class="btn btn-primary">
-                        📋 Copiar todos los datos
-                    </button>
                 </div>
             </div>
 
-            <!-- WhatsApp button -->
-            <a href="https://wa.me/56912345678" target="_blank" class="whatsapp-btn">
-                💬
-            </a>
+            <!-- Información de contacto -->
+            <div v-if="userInfo.telefono || userInfo.email" class="contact-section">
+                <h3>📞 Información de Contacto</h3>
+                <div class="contact-info">
+                    <div v-if="userInfo.telefono" class="contact-item">
+                        <span class="contact-icon">📱</span>
+                        <a :href="`tel:${userInfo.telefono}`" class="contact-link">
+                            {{ userInfo.telefono }}
+                        </a>
+                    </div>
+                    <div v-if="userInfo.email" class="contact-item">
+                        <span class="contact-icon">✉️</span>
+                        <a :href="`mailto:${userInfo.email}`" class="contact-link">
+                            {{ userInfo.email }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No cards state -->
+        <div v-else-if="userInfo && tarjetas.length === 0" class="no-cards-container">
+            <div class="no-cards-icon">💳</div>
+            <h2>Sin tarjetas disponibles</h2>
+            <p>{{ userInfo.nombre }} {{ userInfo.apellido }} aún no ha configurado tarjetas bancarias.</p>
+        </div>
+
+        <!-- Modal de detalles de tarjeta -->
+        <div v-if="selectedCard" class="modal-overlay" @click="closeModal">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    <h3>💳 Datos para Transferencia</h3>
+                    <button @click="closeModal" class="close-btn">✕</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="transfer-details">
+                        <div class="detail-item">
+                            <label>Banco:</label>
+                            <span class="detail-value">{{ selectedCard.banco }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <label>Tipo de Cuenta:</label>
+                            <span class="detail-value">{{ selectedCard.tipoCuenta }}</span>
+                        </div>
+
+                        <div class="detail-item">
+                            <label>Número de Cuenta:</label>
+                            <span class="detail-value copyable" @click="copyToClipboard(selectedCard.numeroCuenta)">
+                                {{ selectedCard.numeroCuenta }}
+                                <span class="copy-icon">📋</span>
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <label>Titular:</label>
+                            <span class="detail-value copyable" @click="copyToClipboard(selectedCard.nombreTitular)">
+                                {{ selectedCard.nombreTitular }}
+                                <span class="copy-icon">📋</span>
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <label>RUT del Titular:</label>
+                            <span class="detail-value copyable" @click="copyToClipboard(selectedCard.rutTitular)">
+                                {{ selectedCard.rutTitular }}
+                                <span class="copy-icon">📋</span>
+                            </span>
+                        </div>
+
+                        <div v-if="selectedCard.emailTitular" class="detail-item">
+                            <label>Email:</label>
+                            <span class="detail-value">{{ selectedCard.emailTitular }}</span>
+                        </div>
+                    </div>
+
+                    <div class="copy-all-section">
+                        <button @click="copyAllData" class="btn btn-primary">
+                            📋 Copiar Todos los Datos
+                        </button>
+                    </div>
+
+                    <div class="instructions">
+                        <h4>💡 Instrucciones:</h4>
+                        <ul>
+                            <li>Toca cualquier dato para copiarlo al portapapeles</li>
+                            <li>Usa estos datos en tu app bancaria para hacer la transferencia</li>
+                            <li>Verifica siempre el nombre del titular antes de transferir</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Powered by <strong>Altoque</strong> - Transferencias Seguras</p>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { db } from '@/firebase'
+import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore'
 
 const route = useRoute()
 const loading = ref(true)
-const error = ref(null)
-const transferData = ref(null)
+const error = ref(false)
+const userInfo = ref(null)
+const tarjetas = ref([])
+const selectedCard = ref(null)
 
-const loadTransferData = async () => {
+// Computed
+const tarjetasActivas = computed(() => {
+    return tarjetas.value.filter(tarjeta => tarjeta.activa)
+})
+
+// Funciones
+const loadUserData = async () => {
     try {
         loading.value = true
-        error.value = null
+        error.value = false
 
         const token = route.query.tkn
+
         if (!token) {
-            throw new Error('Token de transferencia no válido')
+            error.value = true
+            return
         }
 
-        // TODO: Implementar llamada a la API para obtener datos por token
-        // Por ahora, datos de ejemplo
-        await new Promise(resolve => setTimeout(resolve, 1000)) // Simular carga
+        console.log('🔍 Buscando usuario con token:', token)
 
-        transferData.value = {
-            nombreTitular: 'Juan Pérez',
-            banco: 'Banco de Chile',
-            tipoCuenta: 'Cuenta Corriente',
-            numeroCuenta: '12345678',
-            rutTitular: '11111111-1',
-            telefono: '+56911111111',
-            descripcion: 'Cuenta para recibir transferencias',
-            imagen: null
+        // Buscar usuario por token público
+        const usersQuery = query(
+            collection(db, 'users'),
+            where('tokenPublico', '==', token)
+        )
+
+        const usersSnapshot = await getDocs(usersQuery)
+
+        if (usersSnapshot.empty) {
+            console.log('❌ No se encontró usuario con el token')
+            error.value = true
+            return
         }
-    } catch (err) {
-        error.value = err.message
+
+        // Obtener datos del usuario
+        const userDoc = usersSnapshot.docs[0]
+        userInfo.value = { id: userDoc.id, ...userDoc.data() }
+
+        console.log('✅ Usuario encontrado:', userInfo.value.nombre)
+
+        // Cargar tarjetas del usuario
+        await loadUserCards(userInfo.value.email)
+
+        // Registrar visita
+        await registerVisit()
+
+    } catch (error) {
+        console.error('Error cargando datos:', error)
+        error.value = true
     } finally {
         loading.value = false
     }
 }
 
-const copyToClipboard = async (text) => {
+const loadUserCards = async (userEmail) => {
     try {
-        await navigator.clipboard.writeText(text)
-        // TODO: Mostrar notificación de éxito
-        console.log('Copiado:', text)
-    } catch (err) {
-        console.error('Error al copiar:', err)
+        const cardsQuery = query(
+            collection(db, 'bank_cards'),
+            where('propietarioEmail', '==', userEmail)
+        )
+
+        const cardsSnapshot = await getDocs(cardsQuery)
+        tarjetas.value = []
+
+        cardsSnapshot.forEach((doc) => {
+            tarjetas.value.push({
+                id: doc.id,
+                ...doc.data()
+            })
+        })
+
+        console.log('💳 Tarjetas cargadas:', tarjetas.value.length)
+
+    } catch (error) {
+        console.error('Error cargando tarjetas:', error)
     }
 }
 
-const copyAllData = async () => {
-    const data = `
-Datos para transferencia:
-Titular: ${transferData.value.nombreTitular}
-Banco: ${transferData.value.banco}
-Tipo de cuenta: ${transferData.value.tipoCuenta}
-Número de cuenta: ${transferData.value.numeroCuenta}
-RUT: ${transferData.value.rutTitular}
-${transferData.value.telefono ? `Teléfono: ${transferData.value.telefono}` : ''}
-    `.trim()
-
-    await copyToClipboard(data)
+const registerVisit = async () => {
+    try {
+        // Registrar visita en el usuario (solo si es Premium)
+        if (userInfo.value.esPremium) {
+            await updateDoc(doc(db, 'users', userInfo.value.id), {
+                ultimaVisitaPublica: new Date(),
+                visitasTotales: increment(1)
+            })
+        }
+    } catch (error) {
+        console.error('Error registrando visita:', error)
+    }
 }
 
-const retry = () => {
-    loadTransferData()
+const getCardGradient = (colorTema) => {
+    const colorMap = {
+        'turquesa': 'linear-gradient(135deg, #00cccc, #1c94e0)',
+        'azul': 'linear-gradient(135deg, #1c94e0, #0066cc)',
+        'verde': 'linear-gradient(135deg, #28a745, #20c997)',
+        'morado': 'linear-gradient(135deg, #6f42c1, #e83e8c)',
+        'naranja': 'linear-gradient(135deg, #fd7e14, #ffc107)',
+        'rojo': 'linear-gradient(135deg, #dc3545, #fd7e14)'
+    }
+    return colorMap[colorTema] || colorMap.turquesa
+}
+
+const selectCard = async (tarjeta) => {
+    selectedCard.value = tarjeta
+
+    // Registrar escaneo/vista de la tarjeta
+    try {
+        await updateDoc(doc(db, 'bank_cards', tarjeta.id), {
+            vistas: increment(1),
+            ultimaVisita: new Date()
+        })
+    } catch (error) {
+        console.error('Error registrando vista de tarjeta:', error)
+    }
+}
+
+const closeModal = () => {
+    selectedCard.value = null
+}
+
+const copyToClipboard = async (text) => {
+    try {
+        await navigator.clipboard.writeText(text)
+        showCopyFeedback()
+    } catch (error) {
+        // Fallback para navegadores que no soportan clipboard API
+        const textArea = document.createElement('textarea')
+        textArea.value = text
+        document.body.appendChild(textArea)
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+        showCopyFeedback()
+    }
+}
+
+const copyAllData = () => {
+    const allData = `
+Datos para Transferencia:
+
+Banco: ${selectedCard.value.banco}
+Tipo de Cuenta: ${selectedCard.value.tipoCuenta}
+Número de Cuenta: ${selectedCard.value.numeroCuenta}
+Titular: ${selectedCard.value.nombreTitular}
+RUT: ${selectedCard.value.rutTitular}
+${selectedCard.value.emailTitular ? `Email: ${selectedCard.value.emailTitular}` : ''}
+
+Generado por Altoque - Transferencias Seguras
+    `.trim()
+
+    copyToClipboard(allData)
+}
+
+const showCopyFeedback = () => {
+    // Crear elemento de feedback temporal
+    const feedback = document.createElement('div')
+    feedback.textContent = '✅ Copiado!'
+    feedback.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #28a745;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        z-index: 10000;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `
+
+    document.body.appendChild(feedback)
+
+    setTimeout(() => {
+        document.body.removeChild(feedback)
+    }, 2000)
 }
 
 onMounted(() => {
-    loadTransferData()
+    loadUserData()
 })
 </script>
+
+<style scoped>
+@import '@/styles/public-transfer.css';
+</style>
 
 <style scoped>
 .public-transfer {
@@ -189,7 +399,8 @@ onMounted(() => {
     margin: 0;
 }
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
     text-align: center;
     padding: 3rem 2rem;
     animation: fadeIn var(--duration-normal) var(--easing-default);
@@ -206,8 +417,13 @@ onMounted(() => {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .error-icon {
@@ -344,16 +560,16 @@ onMounted(() => {
     .container {
         padding: 0 0.5rem;
     }
-    
+
     .transfer-card {
         padding: 1.5rem;
     }
-    
+
     .card-header {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .detail-item {
         flex-direction: column;
         align-items: flex-start;
