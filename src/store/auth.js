@@ -1,20 +1,28 @@
-// src/store/auth.js
 import { defineStore } from "pinia";
 import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/firebase";
-import router from "@/router"; // Ojo: importa directamente el router
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
     role: null,
     loading: false,
+    error: null,
   }),
 
   actions: {
     async login(email, password) {
       this.loading = true;
+      this.error = null;
+
       try {
         const auth = getAuth();
         const userCredential = await signInWithEmailAndPassword(
@@ -22,29 +30,12 @@ export const useAuthStore = defineStore("auth", {
           email,
           password
         );
-        const user = userCredential.user;
-        this.user = user;
-
-        const q = query(collection(db, "users"), where("email", "==", email));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          const userData = querySnapshot.docs[0].data();
-          this.role = userData.rol;
-
-          // Redirección automática por rol
-          if (userData.rol === "ADMIN") {
-            router.push("/admin");
-          } else if (userData.rol === "VENDEDOR") {
-            router.push("/vendedor");
-          } else {
-            router.push("/usuario");
-          }
-        } else {
-          alert("El usuario no existe en Firestore");
-        }
+        this.user = userCredential.user;
+        await this.fetchUserRole();
+        return true;
       } catch (error) {
-        alert("Error al iniciar sesión: " + error.message);
+        this.error = error.message;
+        return false;
       } finally {
         this.loading = false;
       }
@@ -55,8 +46,42 @@ export const useAuthStore = defineStore("auth", {
       await signOut(auth);
       this.user = null;
       this.role = null;
-      this.loading = false;
-      router.push("/"); // Redirigir a la página de inicio después de cerrar sesión
+    },
+
+    async setUser(user) {
+      this.user = user;
+      if (user) {
+        await this.fetchUserRole();
+      }
+    },
+
+    async fetchUserRole() {
+      if (!this.user) return;
+
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("email", "==", this.user.email)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          this.role = userData.role || userData.rol;
+        } else {
+          // Intenta buscar por UID si no encuentra por email
+          const userDoc = await getDoc(doc(db, "users", this.user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            this.role = userData.role || userData.rol;
+          } else {
+            this.role = "user"; // Rol por defecto
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+        this.role = "user"; // Rol por defecto en caso de error
+      }
     },
   },
 });

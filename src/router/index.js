@@ -1,28 +1,45 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "@/store/auth"; // Asegúrate de que la ruta sea correcta
+import { useAuthStore } from "../store/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const routes = [
-  { path: "/", component: () => import("@/views/HomeView.vue") },
-  { path: "/login", component: () => import("@/views/LoginView.vue") },
+  {
+    path: "/",
+    name: "Home",
+    component: () => import("../views/HomeView.vue"),
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: () => import("../views/LoginView.vue"),
+  },
   {
     path: "/dashboard",
-    component: () => import("@/views/UserDashboardView.vue"),
-    meta: { requiresAuth: true, role: "user" },
+    name: "Dashboard",
+    component: () => import("../views/UserDashboardView.vue"),
+    meta: { requiresAuth: true },
   },
   {
     path: "/admin",
-    component: () => import("@/views/AdminPanelView.vue"),
+    name: "Admin",
+    component: () => import("../views/AdminPanelView.vue"),
     meta: { requiresAuth: true, role: "admin" },
   },
   {
-    path: "/:username",
-    name: "PublicLanding",
-    component: () => import("@/views/PublicLandingView.vue"),
+    path: "/vendedor",
+    name: "Vendedor",
+    component: () => import("../views/SellerDashboardView.vue"),
+    meta: { requiresAuth: true, role: "vendedor" },
   },
   {
-    path: "/vendedor",
-    component: () => import("@/views/SellerDashboardView.vue"),
-    meta: { requiresAuth: true, role: "vendedor" },
+    path: "/u/:username",
+    name: "PublicLanding",
+    component: () => import("../views/PublicLandingView.vue"),
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: () => import("../views/NotFoundView.vue"),
   },
 ];
 
@@ -31,32 +48,59 @@ const router = createRouter({
   routes,
 });
 
+// Esperar a que Firebase Auth se inicialice antes de resolver la navegación
+let authReady = false;
+const auth = getAuth();
+
+const getCurrentUser = () => {
+  return new Promise((resolve, reject) => {
+    if (authReady) {
+      resolve(auth.currentUser);
+    } else {
+      const unsubscribe = onAuthStateChanged(
+        auth,
+        (user) => {
+          authReady = true;
+          unsubscribe();
+          resolve(user);
+        },
+        reject
+      );
+    }
+  });
+};
+
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  const auth = getAuth();
 
-  if (!authStore.user) {
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      await authStore.setUser(currentUser);
-    }
+  // Esperar a que Firebase Auth esté listo
+  const currentUser = await getCurrentUser();
+
+  // Si el usuario está autenticado pero no está en el store, actualizarlo
+  if (currentUser && !authStore.user) {
+    await authStore.setUser(currentUser);
   }
 
   const isAuthenticated = !!authStore.user;
 
-  // Si está intentando ir a login y ya está logueado, redirige según su rol
+  // Redirigir según el rol si ya está autenticado e intenta ir a login
   if (to.path === "/login" && isAuthenticated) {
     if (authStore.role === "admin") return next("/admin");
     if (authStore.role === "vendedor") return next("/vendedor");
     return next("/dashboard");
   }
 
-  // Protección de rutas privadas (si hay rutas protegidas más adelante)
+  // Verificar si la ruta requiere autenticación
   if (to.meta.requiresAuth && !isAuthenticated) {
     return next("/login");
   }
 
-  next(); // todo bien
+  // Verificar si la ruta requiere un rol específico
+  if (to.meta.role && authStore.role !== to.meta.role) {
+    return next("/dashboard"); // Redirigir a una página por defecto si no tiene el rol adecuado
+  }
+
+  next();
 });
 
 export default router;
