@@ -96,6 +96,8 @@
                 <thead>
                     <tr>
                         <th>Usuario</th>
+                        <th>Comuna</th>
+                        <th>Edad</th>
                         <th>Plan</th>
                         <th>Tarjetas por Banco</th>
                         <th>Registro</th>
@@ -115,6 +117,22 @@
                                 <strong>{{ usuario.nombre }} {{ usuario.apellido }}</strong>
                                 <span class="user-email">{{ usuario.email }}</span>
                                 <span class="user-rut">{{ usuario.rut }}</span>
+                            </div>
+                        </td>
+
+                        <td class="comuna-info">
+                            <div class="location-info">
+                                <span class="comuna">{{ usuario.comuna || 'No especificada' }}</span>
+                                <small v-if="usuario.region" class="region">{{ usuario.region }}</small>
+                            </div>
+                        </td>
+
+                        <td class="edad-info">
+                            <div class="age-info">
+                                <span class="age">{{ calculateAge(usuario.fechaNacimiento) || 'N/A' }}</span>
+                                <small v-if="usuario.fechaNacimiento" class="birth-date">
+                                    {{ formatDate(usuario.fechaNacimiento) }}
+                                </small>
                             </div>
                         </td>
 
@@ -259,9 +277,9 @@ const usuariosFiltrados = computed(() => {
                 valueA = a.fechaRegistro ? (a.fechaRegistro.toDate ? a.fechaRegistro.toDate() : new Date(a.fechaRegistro)) : new Date(0)
                 valueB = b.fechaRegistro ? (b.fechaRegistro.toDate ? b.fechaRegistro.toDate() : new Date(b.fechaRegistro)) : new Date(0)
                 break
-            case 'role':
-                valueA = a.role || ''
-                valueB = b.role || ''
+            case 'rol':
+                valueA = a.rol || ''
+                valueB = b.rol || ''
                 break
             case 'comuna':
                 valueA = (a.comuna || '').toLowerCase()
@@ -558,7 +576,7 @@ const migrarRoles = async () => {
         const result = await migrateUserRoles()
 
         // Recargar usuarios
-        await cargarUsuarios()
+        await loadUsers()
 
         alert(`✅ Migración completada:\n- Total usuarios: ${result.total}\n- Migrados: ${result.migrated}\n- Sin cambios: ${result.unchanged}`)
 
@@ -570,8 +588,25 @@ const migrarRoles = async () => {
     }
 }
 
+// Detectar si la tabla necesita scroll horizontal
+const checkTableScroll = () => {
+    const container = document.querySelector('.users-table-container')
+    if (container) {
+        const needsScroll = container.scrollWidth > container.clientWidth
+        if (needsScroll) {
+            container.setAttribute('data-scrollable', 'true')
+        } else {
+            container.removeAttribute('data-scrollable')
+        }
+    }
+}
+
 onMounted(() => {
     loadUsers()
+    // Verificar scroll después de cargar
+    setTimeout(checkTableScroll, 100)
+    // Verificar scroll al redimensionar ventana
+    window.addEventListener('resize', checkTableScroll)
 })
 </script>
 

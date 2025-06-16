@@ -166,12 +166,81 @@
     border-radius: 1rem;
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--color-border);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: visible;
+    max-width: 100%;
+    position: relative;
+}
+
+/* Indicador de scroll horizontal */
+.users-table-container::after {
+    content: "← Desliza para ver más →";
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    background: var(--color-turquesa);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Ocultar indicador cuando no hay scroll */
+.users-table-container:not([data-scrollable])::after {
+    display: none;
 }
 
 .users-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 1200px; /* Asegurar ancho mínimo para todas las columnas */
+    table-layout: fixed; /* Controlar anchos de columnas */
+}
+
+/* Anchos específicos de columnas */
+.users-table th:nth-child(1), /* Usuario */
+.users-table td:nth-child(1) {
+    width: 250px;
+}
+
+.users-table th:nth-child(2), /* Comuna */
+.users-table td:nth-child(2) {
+    width: 140px;
+}
+
+.users-table th:nth-child(3), /* Edad */
+.users-table td:nth-child(3) {
+    width: 80px;
+}
+
+.users-table th:nth-child(4), /* Plan */
+.users-table td:nth-child(4) {
+    width: 150px;
+}
+
+.users-table th:nth-child(5), /* Tarjetas */
+.users-table td:nth-child(5) {
+    width: 200px;
+}
+
+.users-table th:nth-child(6), /* Registro */
+.users-table td:nth-child(6) {
+    width: 180px;
+}
+
+.users-table th:nth-child(7), /* Estado */
+.users-table td:nth-child(7) {
+    width: 120px;
+}
+
+.users-table th:nth-child(8), /* Acciones */
+.users-table td:nth-child(8) {
+    width: 100px;
+    min-width: 100px;
 }
 
 .users-table th {
@@ -234,6 +303,53 @@
     color: var(--color-text-secondary);
     font-size: 0.8rem;
     font-family: var(--font-secondary);
+}
+
+/* Comuna Info */
+.comuna-info {
+    min-width: 120px;
+}
+
+.location-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.comuna {
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.region {
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+}
+
+/* Edad Info */
+.edad-info {
+    min-width: 80px;
+    text-align: center;
+}
+
+.age-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.age {
+    color: var(--color-text);
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: var(--font-secondary);
+}
+
+.birth-date {
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
 }
 
 /* Plan Info */
@@ -463,16 +579,25 @@ input:disabled + .toggle-slider {
 .actions {
     display: flex;
     gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    min-width: 100px;
+    padding: 0.5rem;
 }
 
 .btn-icon {
-    background: none;
+    background: var(--color-surface-variant);
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
     cursor: pointer;
     transition: all var(--duration-normal) var(--easing-default);
-    font-size: 0.9rem;
+    font-size: 1rem;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-icon:hover {
@@ -493,6 +618,60 @@ input:disabled + .toggle-slider {
 .btn-icon.enable:hover {
     border-color: var(--color-success);
     color: var(--color-success);
+}
+
+.btn-icon.edit:hover {
+    border-color: var(--color-azul);
+    color: var(--color-azul);
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .users-table {
+        min-width: 1000px;
+    }
+
+    /* Reducir anchos de columnas */
+    .users-table th:nth-child(1), .users-table td:nth-child(1) { width: 200px; }
+    .users-table th:nth-child(2), .users-table td:nth-child(2) { width: 120px; }
+    .users-table th:nth-child(4), .users-table td:nth-child(4) { width: 130px; }
+    .users-table th:nth-child(5), .users-table td:nth-child(5) { width: 180px; }
+    .users-table th:nth-child(6), .users-table td:nth-child(6) { width: 160px; }
+}
+
+@media (max-width: 1200px) {
+    .users-table {
+        min-width: 900px;
+    }
+
+    /* Ocultar información secundaria en pantallas pequeñas */
+    .region, .birth-date, .vendor-info, .creation-source {
+        display: none;
+    }
+
+    /* Reducir padding */
+    .users-table th, .users-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .users-table {
+        min-width: 800px;
+    }
+
+    /* Simplificar vista móvil */
+    .user-rut {
+        display: none;
+    }
+
+    .plan-details {
+        display: none;
+    }
+
+    .banks-list {
+        display: none;
+    }
 }
 
 /* Loading and Empty States */

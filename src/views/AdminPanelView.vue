@@ -89,6 +89,7 @@ const showNotification = (type, message) => {
     min-height: 100vh;
     background: var(--color-background);
     font-family: var(--font-primary);
+    position: relative;
 }
 
 .main-content {
@@ -96,6 +97,9 @@ const showNotification = (type, message) => {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    margin-left: 280px;
+    /* Espacio para sidebar fijo */
+    width: calc(100% - 280px);
 }
 
 /* Animación de entrada */
@@ -103,9 +107,29 @@ const showNotification = (type, message) => {
     animation: fadeIn var(--duration-normal) var(--easing-default);
 }
 
+/* Mobile First - Responsive */
 @media (max-width: 768px) {
     .admin-panel {
         flex-direction: column;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .main-content {
+        margin-left: 260px;
+        width: calc(100% - 260px);
+    }
+}
+
+@media (min-width: 1025px) {
+    .main-content {
+        margin-left: 280px;
+        width: calc(100% - 280px);
     }
 }
 </style>

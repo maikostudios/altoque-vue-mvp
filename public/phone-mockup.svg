@@ -1,0 +1,39 @@
+<svg width="320" height="640" viewBox="0 0 320 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Phone Frame -->
+  <rect x="10" y="10" width="300" height="620" rx="40" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+  
+  <!-- Screen -->
+  <rect x="25" y="60" width="270" height="520" rx="25" fill="#121212"/>
+  
+  <!-- Status Bar -->
+  <rect x="35" y="75" width="250" height="20" fill="#1e1e1e"/>
+  <text x="45" y="88" fill="#00cccc" font-family="Arial" font-size="12">9:11</text>
+  <text x="250" y="88" fill="#00cccc" font-family="Arial" font-size="12">100%</text>
+  
+  <!-- App Header -->
+  <rect x="35" y="105" width="250" height="50" fill="#1e1e1e"/>
+  <text x="45" y="125" fill="#ffffff" font-family="Arial" font-size="14">←</text>
+  <text x="160" y="135" fill="#ffffff" font-family="Arial" font-size="16" text-anchor="middle">Nueva transferencia</text>
+  
+  <!-- Bank Selection -->
+  <rect x="45" y="170" width="230" height="40" rx="8" fill="#2a2a2a"/>
+  <text x="55" y="185" fill="#bababa" font-family="Arial" font-size="12">Banco</text>
+  <text x="55" y="200" fill="#ffffff" font-family="Arial" font-size="14">Falabella</text>
+  
+  <!-- Account Type -->
+  <rect x="45" y="220" width="230" height="40" rx="8" fill="#2a2a2a"/>
+  <text x="55" y="235" fill="#bababa" font-family="Arial" font-size="12">Cta/s</text>
+  <text x="55" y="250" fill="#ffffff" font-family="Arial" font-size="14">Cuenta Vista</text>
+  
+  <!-- Account Number -->
+  <rect x="45" y="270" width="230" height="40" rx="8" fill="#2a2a2a"/>
+  <text x="55" y="285" fill="#bababa" font-family="Arial" font-size="12">Cuenta o número:</text>
+  <text x="55" y="300" fill="#ffffff" font-family="Arial" font-size="14">198.4.0829.0007.7018</text>
+  
+  <!-- Transfer Button -->
+  <rect x="45" y="450" width="230" height="50" rx="25" fill="#00cccc"/>
+  <text x="160" y="480" fill="#ffffff" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Realizar transferencia</text>
+  
+  <!-- Home Indicator -->
+  <rect x="140" y="600" width="40" height="4" rx="2" fill="#666"/>
+</svg>

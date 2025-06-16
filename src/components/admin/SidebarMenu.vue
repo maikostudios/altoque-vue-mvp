@@ -72,14 +72,20 @@ defineEmits(['changeView'])
 
 <style scoped>
 .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 280px;
     background: var(--color-surface);
     color: var(--color-text);
     min-height: 100vh;
+    height: 100vh;
     padding: 1.5rem 0;
     border-right: 1px solid var(--color-border);
     box-shadow: var(--shadow-lg);
     font-family: var(--font-primary);
+    z-index: 1000;
+    overflow-y: auto;
 }
 
 .sidebar-header {
@@ -188,6 +194,57 @@ defineEmits(['changeView'])
     to {
         transform: translateX(0);
         opacity: 1;
+    }
+}
+
+/* Mobile First - Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+        z-index: 100;
+    }
+
+    .sidebar-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0 1rem;
+    }
+
+    .nav-item {
+        margin: 0;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 0.75rem;
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+        transform: none;
+    }
+
+    .nav-item.active {
+        transform: scale(1.02);
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .sidebar {
+        width: 260px;
+    }
+}
+
+@media (min-width: 1025px) {
+    .sidebar {
+        width: 280px;
     }
 }
 

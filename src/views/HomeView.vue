@@ -1,24 +1,49 @@
 <template>
     <div class="home">
-        <h1 class="text-3xl font-bold mb-6">Bienvenido a Altoque App</h1>
-        <p class="mb-4">Tu plataforma para gestionar tus servicios de manera eficiente.</p>
-
-        <div class="mt-8">
-            <router-link to="/login" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mr-4">
-                Iniciar sesión
-            </router-link>
-        </div>
+        <NavbarHome />
+        <HeroSectionHome />
+        <BenefitsSection />
+        <FooterHome />
+        <WhatsAppButton />
     </div>
 </template>
 
 <script setup>
-// No se requiere lógica adicional
+import NavbarHome from '@/components/home/NavbarHome.vue'
+import HeroSectionHome from '@/components/home/HeroSectionHome.vue'
+import BenefitsSection from '@/components/home/BenefitsSection.vue'
+import FooterHome from '@/components/home/FooterHome.vue'
+import WhatsAppButton from '@/components/home/WhatsAppButton.vue'
 </script>
 
 <style scoped>
 .home {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
+    background: #121212;
+    color: #fff;
+    font-family: 'Montserrat', 'Roboto', 'Raleway', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Asegurar que el layout sea fluido */
+.home * {
+    box-sizing: border-box;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Links globales */
+.home a {
+    color: #00cccc;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.home a:hover {
+    color: #1c94e0;
 }
 </style>
