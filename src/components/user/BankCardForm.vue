@@ -7,47 +7,46 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Nombre de la Tarjeta *</label>
-                        <input 
-                            v-model="form.nombreTarjeta" 
-                            type="text" 
-                            class="input" 
-                            required
-                            placeholder="Ej: Mi Cuenta Principal"
-                            maxlength="50"
-                        >
+                        <input v-model="form.nombreTarjeta" type="text" class="input" required
+                            placeholder="Ej: Mi Cuenta Principal" maxlength="50">
                         <small>Nombre que aparecerá en tu página pública</small>
                     </div>
 
                     <div class="form-group">
                         <label>Banco *</label>
-                        <select v-model="form.banco" class="input" required>
-                            <option value="">Selecciona un banco</option>
-                            <option value="Banco de Chile">Banco de Chile</option>
-                            <option value="Banco Santander">Banco Santander</option>
-                            <option value="Banco Estado">Banco Estado</option>
-                            <option value="Banco BCI">Banco BCI</option>
-                            <option value="Banco Falabella">Banco Falabella</option>
-                            <option value="Banco Security">Banco Security</option>
-                            <option value="Banco Itaú">Banco Itaú</option>
-                            <option value="Banco Scotiabank">Banco Scotiabank</option>
-                            <option value="Banco BICE">Banco BICE</option>
-                            <option value="Banco Consorcio">Banco Consorcio</option>
-                            <option value="Banco Ripley">Banco Ripley</option>
-                            <option value="Banco Paris">Banco Paris</option>
-                            <option value="Coopeuch">Coopeuch</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
+                        <div class="banco-selector">
+                            <select v-model="selectedBancoCode" class="input" required @change="onBancoChange">
+                                <option value="">Selecciona un banco, wallet o tarjeta</option>
+                                <optgroup v-for="group in bancosAgrupados" :key="group.label" :label="group.label">
+                                    <option v-for="banco in group.options" :key="banco.bankCode"
+                                        :value="banco.bankCode">
+                                        {{ getBancoIcon(banco.type) }} {{ banco.bankName }}
+                                    </option>
+                                </optgroup>
+                            </select>
 
-                    <div v-if="form.banco === 'Otro'" class="form-group">
-                        <label>Especificar Banco *</label>
-                        <input 
-                            v-model="form.bancoOtro" 
-                            type="text" 
-                            class="input" 
-                            required
-                            placeholder="Nombre del banco"
-                        >
+                            <div v-if="loadingBancos" class="banco-loading">
+                                <div class="spinner-small"></div>
+                                <span>Cargando bancos...</span>
+                            </div>
+
+                            <div v-if="errorBancos" class="banco-error">
+                                <span>❌ {{ errorBancos }}</span>
+                                <button @click="loadBancos" class="retry-btn">Reintentar</button>
+                            </div>
+                        </div>
+
+                        <div v-if="selectedBanco" class="banco-preview">
+                            <div class="banco-info">
+                                <span class="banco-icon" :style="{ color: getBancoColor(selectedBanco.type) }">
+                                    {{ getBancoIcon(selectedBanco.type) }}
+                                </span>
+                                <div class="banco-details">
+                                    <strong>{{ selectedBanco.bankName }}</strong>
+                                    <small>{{ getBancoTypeLabel(selectedBanco.type) }}</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -64,14 +63,8 @@
 
                     <div class="form-group">
                         <label>Número de Cuenta *</label>
-                        <input 
-                            v-model="form.numeroCuenta" 
-                            type="text" 
-                            class="input" 
-                            required
-                            placeholder="Número de cuenta"
-                            @input="formatAccountNumber"
-                        >
+                        <input v-model="form.numeroCuenta" type="text" class="input" required
+                            placeholder="Número de cuenta" @input="formatAccountNumber">
                         <small>Solo números, se formateará automáticamente</small>
                     </div>
                 </div>
@@ -83,45 +76,24 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Nombre del Titular *</label>
-                        <input 
-                            v-model="form.nombreTitular" 
-                            type="text" 
-                            class="input" 
-                            required
-                            placeholder="Nombre completo del titular"
-                        >
+                        <input v-model="form.nombreTitular" type="text" class="input" required
+                            placeholder="Nombre completo del titular">
                     </div>
 
                     <div class="form-group">
                         <label>RUT del Titular *</label>
-                        <input 
-                            v-model="form.rutTitular" 
-                            type="text" 
-                            class="input" 
-                            required
-                            placeholder="12345678-9"
-                            @input="formatRut"
-                        >
+                        <input v-model="form.rutTitular" type="text" class="input" required placeholder="12345678-9"
+                            @input="formatRut">
                     </div>
 
                     <div class="form-group">
                         <label>Email del Titular</label>
-                        <input 
-                            v-model="form.emailTitular" 
-                            type="email" 
-                            class="input"
-                            placeholder="email@ejemplo.com"
-                        >
+                        <input v-model="form.emailTitular" type="email" class="input" placeholder="email@ejemplo.com">
                     </div>
 
                     <div class="form-group">
                         <label>Teléfono del Titular</label>
-                        <input 
-                            v-model="form.telefonoTitular" 
-                            type="tel" 
-                            class="input"
-                            placeholder="+56912345678"
-                        >
+                        <input v-model="form.telefonoTitular" type="tel" class="input" placeholder="+56912345678">
                     </div>
                 </div>
             </div>
@@ -132,36 +104,22 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Título Personalizado</label>
-                        <input 
-                            v-model="form.tituloPersonalizado" 
-                            type="text" 
-                            class="input"
-                            placeholder="Ej: Panadería Don Juan"
-                            maxlength="100"
-                        >
+                        <input v-model="form.tituloPersonalizado" type="text" class="input"
+                            placeholder="Ej: Panadería Don Juan" maxlength="100">
                         <small>Aparecerá como título en tu página pública</small>
                     </div>
 
                     <div class="form-group">
                         <label>Descripción</label>
-                        <textarea 
-                            v-model="form.descripcion" 
-                            class="input textarea"
-                            placeholder="Descripción de tu negocio o servicio"
-                            rows="3"
-                            maxlength="500"
-                        ></textarea>
+                        <textarea v-model="form.descripcion" class="input textarea"
+                            placeholder="Descripción de tu negocio o servicio" rows="3" maxlength="500"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label>Color de Tema</label>
                         <div class="color-options">
                             <label v-for="color in colorOptions" :key="color.value" class="color-option">
-                                <input 
-                                    v-model="form.colorTema" 
-                                    type="radio" 
-                                    :value="color.value"
-                                >
+                                <input v-model="form.colorTema" type="radio" :value="color.value">
                                 <span class="color-preview" :style="{ background: color.gradient }"></span>
                                 <span class="color-name">{{ color.name }}</span>
                             </label>
@@ -247,6 +205,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useBancos } from '@/composables/useBancos'
 
 const props = defineProps({
     editMode: {
@@ -269,11 +228,30 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel'])
 
+// Composable de bancos
+const {
+    bancos,
+    loading: loadingBancos,
+    error: errorBancos,
+    bancosAgrupados,
+    loadBancos,
+    findBancoByCode,
+    findBancoByName,
+    getBancoIcon,
+    getBancoColor,
+    formatBancoData
+} = useBancos()
+
+// Variables para selector de bancos
+const selectedBancoCode = ref('')
+const selectedBanco = ref(null)
+
 // Formulario
 const form = ref({
     nombreTarjeta: '',
     banco: '',
-    bancoOtro: '',
+    bancoCodigo: '',
+    bancoTipo: '',
     tipoCuenta: '',
     numeroCuenta: '',
     nombreTitular: '',
@@ -299,7 +277,33 @@ const colorOptions = [
     { value: 'rojo', name: 'Rojo', gradient: 'linear-gradient(135deg, #dc3545, #fd7e14)' }
 ]
 
-// Funciones
+// Funciones para bancos
+const onBancoChange = () => {
+    if (selectedBancoCode.value) {
+        selectedBanco.value = findBancoByCode(selectedBancoCode.value)
+        if (selectedBanco.value) {
+            form.value.banco = selectedBanco.value.bankName
+            form.value.bancoCodigo = selectedBanco.value.bankCode
+            form.value.bancoTipo = selectedBanco.value.type
+        }
+    } else {
+        selectedBanco.value = null
+        form.value.banco = ''
+        form.value.bancoCodigo = ''
+        form.value.bancoTipo = ''
+    }
+}
+
+const getBancoTypeLabel = (type) => {
+    const labels = {
+        'BANK': 'Banco Tradicional',
+        'WALLET': 'Wallet Digital',
+        'PREPAID_CARD': 'Tarjeta Prepagada'
+    }
+    return labels[type] || 'Banco'
+}
+
+// Funciones de formato
 const formatAccountNumber = (event) => {
     let value = event.target.value.replace(/\D/g, '')
     form.value.numeroCuenta = value
@@ -327,22 +331,38 @@ const formatPreviewAccount = () => {
 
 const submitForm = () => {
     const formData = { ...form.value }
-    
-    // Si seleccionó "Otro" banco, usar el valor personalizado
-    if (formData.banco === 'Otro' && formData.bancoOtro) {
-        formData.banco = formData.bancoOtro
+
+    // Validar que se haya seleccionado un banco
+    if (!selectedBanco.value) {
+        alert('Por favor selecciona un banco, wallet o tarjeta')
+        return
     }
-    
-    // Limpiar campos no necesarios
-    delete formData.bancoOtro
-    
+
     emit('submit', formData)
 }
 
 // Cargar datos si está en modo edición
-onMounted(() => {
+onMounted(async () => {
+    // Cargar bancos
+    await loadBancos()
+
+    // Si está en modo edición, cargar datos
     if (props.editMode && props.cardData) {
         Object.assign(form.value, props.cardData)
+
+        // Buscar y seleccionar el banco correspondiente
+        if (props.cardData.bancoCodigo) {
+            selectedBancoCode.value = props.cardData.bancoCodigo
+            selectedBanco.value = findBancoByCode(props.cardData.bancoCodigo)
+        } else if (props.cardData.banco) {
+            // Fallback: buscar por nombre si no hay código
+            selectedBanco.value = findBancoByName(props.cardData.banco)
+            if (selectedBanco.value) {
+                selectedBancoCode.value = selectedBanco.value.bankCode
+                form.value.bancoCodigo = selectedBanco.value.bankCode
+                form.value.bancoTipo = selectedBanco.value.type
+            }
+        }
     }
 })
 </script>
@@ -437,7 +457,7 @@ onMounted(() => {
     display: none;
 }
 
-.color-option input[type="radio"]:checked + .color-preview {
+.color-option input[type="radio"]:checked+.color-preview {
     border: 3px solid var(--color-turquesa);
     transform: scale(1.1);
 }
@@ -559,23 +579,135 @@ onMounted(() => {
     border-top: 1px solid var(--color-border);
 }
 
+/* Banco Selector */
+.banco-selector {
+    position: relative;
+}
+
+.banco-loading,
+.banco-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.banco-loading {
+    background: var(--color-surface-variant);
+    color: var(--color-text-secondary);
+}
+
+.banco-error {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--color-error);
+}
+
+.spinner-small {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-surface-variant);
+    border-top: 2px solid var(--color-turquesa);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.retry-btn {
+    background: none;
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all var(--duration-normal) var(--easing-default);
+}
+
+.retry-btn:hover {
+    background: var(--color-error);
+    color: white;
+}
+
+.banco-preview {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background: var(--color-surface);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+    animation: slideUp var(--duration-normal) var(--easing-default);
+}
+
+.banco-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.banco-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-variant);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.banco-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.banco-details strong {
+    color: var(--color-text);
+    font-size: 1rem;
+}
+
+.banco-details small {
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+}
+
+/* Optgroup styling */
+select optgroup {
+    font-weight: 600;
+    color: var(--color-text);
+    background: var(--color-surface-variant);
+}
+
+select option {
+    padding: 0.5rem;
+    color: var(--color-text);
+    background: var(--color-surface);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .form-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .color-options {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .form-actions {
         flex-direction: column;
     }
-    
+
     .preview-card {
         width: 100%;
         max-width: 300px;
+    }
+
+    .banco-info {
+        flex-direction: column;
+        text-align: center;
     }
 }
 </style>

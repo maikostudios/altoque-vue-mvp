@@ -220,7 +220,7 @@ const registrarUsuario = async () => {
             comuna: form.value.comuna,
             region: form.value.region,
             empresa: form.value.empresa,
-            role: 'usuario', // Usar 'role' en lugar de 'rol'
+            rol: 'usuario', // Campo único para roles
 
             // Token público único para QR
             tokenPublico: tokenPublico,

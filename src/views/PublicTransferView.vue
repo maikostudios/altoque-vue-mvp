@@ -48,7 +48,7 @@
                             <div class="card-info">
                                 <p><strong>Tipo:</strong> {{ tarjeta.tipoCuenta }}</p>
                                 <p><strong>Banco:</strong> {{ tarjeta.banco }}</p>
-                                <p><strong>Titular:</strong> {{ tarjeta.nombreTitular }}</p>
+                                <p><strong>Titular:</strong> {{ tarjeta.nombreTitular.toUpperCase() }}</p>
                             </div>
                         </div>
 
@@ -108,24 +108,27 @@
 
                         <div class="detail-item">
                             <label>Número de Cuenta:</label>
-                            <span class="detail-value copyable" @click="copyToClipboard(selectedCard.numeroCuenta)">
-                                {{ selectedCard.numeroCuenta }}
+                            <span class="detail-value copyable"
+                                @click="copyToClipboard(formatAccountNumber(selectedCard.numeroCuenta))">
+                                {{ formatAccountNumber(selectedCard.numeroCuenta) }}
                                 <span class="copy-icon">📋</span>
                             </span>
                         </div>
 
                         <div class="detail-item">
                             <label>Titular:</label>
-                            <span class="detail-value copyable" @click="copyToClipboard(selectedCard.nombreTitular)">
-                                {{ selectedCard.nombreTitular }}
+                            <span class="detail-value copyable"
+                                @click="copyToClipboard(selectedCard.nombreTitular.toUpperCase())">
+                                {{ selectedCard.nombreTitular.toUpperCase() }}
                                 <span class="copy-icon">📋</span>
                             </span>
                         </div>
 
                         <div class="detail-item">
                             <label>RUT del Titular:</label>
-                            <span class="detail-value copyable" @click="copyToClipboard(selectedCard.rutTitular)">
-                                {{ selectedCard.rutTitular }}
+                            <span class="detail-value copyable"
+                                @click="copyToClipboard(formatRut(selectedCard.rutTitular))">
+                                {{ formatRut(selectedCard.rutTitular) }}
                                 <span class="copy-icon">📋</span>
                             </span>
                         </div>
@@ -296,6 +299,19 @@ const closeModal = () => {
     selectedCard.value = null
 }
 
+// Funciones de formato para datos bancarios
+const formatRut = (rut) => {
+    if (!rut) return ''
+    // Formatear RUT con puntos y guión especial (‑ es guión no-break)
+    return rut.replace(/^(\d{1,2})(\d{3})(\d{3})([kK\d])$/, '$1.$2.$3‑$4')
+}
+
+const formatAccountNumber = (account) => {
+    if (!account) return ''
+    // Formatear número de cuenta con espacios cada 3 dígitos
+    return account.replace(/(\d{1,3})(?=(\d{3})+(?!\d))/g, '$1 ')
+}
+
 const copyToClipboard = async (text) => {
     try {
         await navigator.clipboard.writeText(text)
@@ -313,18 +329,25 @@ const copyToClipboard = async (text) => {
 }
 
 const copyAllData = () => {
-    const allData = `
-Datos para Transferencia:
+    // Formato específico para formularios bancarios
+    const formatRut = (rut) => {
+        if (!rut) return ''
+        // Formatear RUT con puntos y guión
+        return rut.replace(/^(\d{1,2})(\d{3})(\d{3})([kK\d])$/, '$1.$2.$3‑$4')
+    }
 
-Banco: ${selectedCard.value.banco}
-Tipo de Cuenta: ${selectedCard.value.tipoCuenta}
-Número de Cuenta: ${selectedCard.value.numeroCuenta}
-Titular: ${selectedCard.value.nombreTitular}
-RUT: ${selectedCard.value.rutTitular}
-${selectedCard.value.emailTitular ? `Email: ${selectedCard.value.emailTitular}` : ''}
+    const formatAccountNumber = (account) => {
+        if (!account) return ''
+        // Formatear número de cuenta con espacios cada 3 dígitos
+        return account.replace(/(\d{1,3})(?=(\d{3})+(?!\d))/g, '$1 ')
+    }
 
-Generado por Altoque - Transferencias Seguras
-    `.trim()
+    const allData = `Nombre: ${selectedCard.value.nombreTitular.toUpperCase()}
+RUT: ${formatRut(selectedCard.value.rutTitular)}
+Banco: ${selectedCard.value.banco.toUpperCase()}
+Tipo de cuenta: ${selectedCard.value.tipoCuenta}
+Número de cuenta: ${formatAccountNumber(selectedCard.value.numeroCuenta)}
+${selectedCard.value.emailTitular ? `Correo: ${selectedCard.value.emailTitular.toLowerCase()}` : ''}`
 
     copyToClipboard(allData)
 }

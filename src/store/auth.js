@@ -168,16 +168,16 @@ export const useAuthStore = defineStore("auth", {
 
         if (userData) {
           console.log("Datos del usuario encontrados:", userData);
-          // Normalizar el rol a minúsculas para consistencia
-          const userRole = userData.role || userData.rol;
+          // Usar solo el campo 'rol' como estándar
+          const userRole = userData.rol;
           console.log("Rol extraído:", userRole);
-          this.role = userRole ? userRole.toLowerCase() : "user";
+          this.role = userRole ? userRole.toLowerCase() : "usuario";
           console.log("Rol final asignado:", this.role);
         } else {
           console.log(
             "Usuario no encontrado en Firestore, asignando rol por defecto"
           );
-          this.role = "user"; // Rol por defecto
+          this.role = "usuario"; // Rol por defecto
         }
       } catch (error) {
         console.error("Error fetching user role:", error);

@@ -1,0 +1,262 @@
+[
+  {
+    "bankName": "Banco de Chile",
+    "bankCode": "BANCOCHILE",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Estado",
+    "bankCode": "BANCOESTADO",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Santander",
+    "bankCode": "BANCOSANTANDER",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco BCI",
+    "bankCode": "BANCOBCI",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Security",
+    "bankCode": "BANCOSECURITY",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Falabella",
+    "bankCode": "BANCOFALABELLA",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Itaú",
+    "bankCode": "BANCOITAU",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Scotiabank",
+    "bankCode": "BANCOSCOTIABANK",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco BICE",
+    "bankCode": "BANCOBICE",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Consorcio",
+    "bankCode": "BANCOCONSORCIO",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Ripley",
+    "bankCode": "BANCORIPLEY",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Paris",
+    "bankCode": "BANCOPARIS",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Internacional",
+    "bankCode": "BANCOINTERNACIONAL",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Edwards Citi",
+    "bankCode": "BANCOEDWARDSCITI",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco BTG Pactual",
+    "bankCode": "BANCOBTGPACTUAL",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Do Brasil",
+    "bankCode": "BANCODOBRASIL",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco JP Morgan Chase",
+    "bankCode": "BANCOJPMORGAN",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco HSBC",
+    "bankCode": "BANCOHSBC",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Coopeuch",
+    "bankCode": "COOPEUCH",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Capual",
+    "bankCode": "CAPUAL",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Penta",
+    "bankCode": "BANCOPENTA",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Monex",
+    "bankCode": "BANCOMONEX",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Crédito e Inversiones",
+    "bankCode": "BANCOCREDITO",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Desarrollo",
+    "bankCode": "BANCODESARROLLO",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Banco Corpbanca",
+    "bankCode": "BANCOCORPBANCA",
+    "type": "BANK"
+  },
+  {
+    "bankName": "Mercado Pago",
+    "bankCode": "MERCADOPAGO",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Copec Pay",
+    "bankCode": "COPECPAY",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Tenpo",
+    "bankCode": "TENPO",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Mach",
+    "bankCode": "MACH",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Chek",
+    "bankCode": "CHEK",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Klap",
+    "bankCode": "KLAP",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Multicaja",
+    "bankCode": "MULTICAJA",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Prex",
+    "bankCode": "PREX",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Ualá",
+    "bankCode": "UALA",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Lemon Cash",
+    "bankCode": "LEMONCASH",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Buda",
+    "bankCode": "BUDA",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Orionx",
+    "bankCode": "ORIONX",
+    "type": "WALLET"
+  },
+  {
+    "bankName": "Tarjeta Cencosud",
+    "bankCode": "CENCOSUD",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Ripley",
+    "bankCode": "RIPLEYCARD",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Falabella CMR",
+    "bankCode": "FALABALLACMR",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta La Polar",
+    "bankCode": "LAPOLAR",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Hites",
+    "bankCode": "HITES",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Corona",
+    "bankCode": "CORONA",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Líder",
+    "bankCode": "LIDER",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Unimarc",
+    "bankCode": "UNIMARC",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Tottus",
+    "bankCode": "TOTTUS",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Jumbo",
+    "bankCode": "JUMBO",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Santa Isabel",
+    "bankCode": "SANTAISABEL",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Copec",
+    "bankCode": "COPECCARD",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Shell",
+    "bankCode": "SHELL",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Petrobras",
+    "bankCode": "PETROBRAS",
+    "type": "PREPAID_CARD"
+  },
+  {
+    "bankName": "Tarjeta Esso",
+    "bankCode": "ESSO",
+    "type": "PREPAID_CARD"
+  }
+]

@@ -14,7 +14,13 @@
                 <li>
                     <button @click="$emit('changeView', 'usuarios')" class="nav-item"
                         :class="{ active: currentView === 'usuarios' }">
-                        👥 Usuarios
+                        ➕ Crear Usuario
+                    </button>
+                </li>
+                <li>
+                    <button @click="$emit('changeView', 'lista')" class="nav-item"
+                        :class="{ active: currentView === 'lista' }">
+                        👥 Lista de Usuarios
                     </button>
                 </li>
                 <li>
@@ -167,6 +173,10 @@ defineEmits(['changeView'])
 
 .nav-item:nth-child(7) {
     animation-delay: 0.7s;
+}
+
+.nav-item:nth-child(8) {
+    animation-delay: 0.8s;
 }
 
 @keyframes slideInLeft {

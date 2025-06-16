@@ -132,6 +132,11 @@
                         </div>
                         <div class="tarjeta-info">
                             <p><strong>Banco:</strong> {{ tarjeta.banco }}</p>
+                            <p v-if="tarjeta.bancoTipo" class="banco-tipo">
+                                <span :class="['tipo-badge', tarjeta.bancoTipo.toLowerCase()]">
+                                    {{ getBancoTypeLabel(tarjeta.bancoTipo) }}
+                                </span>
+                            </p>
                             <p><strong>Tipo:</strong> {{ tarjeta.tipoCuenta }}</p>
                             <p><strong>Cuenta:</strong> {{ tarjeta.numeroCuenta }}</p>
                             <p><strong>Titular:</strong> {{ tarjeta.nombreTitular }}</p>
@@ -362,7 +367,6 @@ const activeTab = ref('tarjetas')
 const showCreateCardModal = ref(false)
 const showQRModal = ref(false)
 const editingCard = ref(null)
-const selectedCard = ref(null)
 const periodoEstadisticas = ref(30)
 
 // Datos del usuario
@@ -535,6 +539,15 @@ const formatDate = (date) => {
         month: '2-digit',
         year: 'numeric'
     })
+}
+
+const getBancoTypeLabel = (type) => {
+    const labels = {
+        'BANK': 'Banco',
+        'WALLET': 'Wallet',
+        'PREPAID_CARD': 'Prepagada'
+    }
+    return labels[type] || 'Banco'
 }
 
 const dismissNotification = (id) => {
