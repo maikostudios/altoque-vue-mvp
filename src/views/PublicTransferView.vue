@@ -184,6 +184,7 @@ import { db } from '@/firebase'
 import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore'
 import { incrementTransferCounter } from '@/store/transferCounter'
 import { metricsService } from '@/services/metricsService'
+import { analyticsService } from '@/services/analyticsService'
 
 const route = useRoute()
 const router = useRouter()
@@ -223,6 +224,9 @@ const loadUserData = async () => {
 
         // 📊 TRACKING: Registrar visita a la página
         await metricsService.trackPageVisit(userId)
+
+        // 📊 ANALYTICS: Registrar visita detallada con datos del dispositivo
+        await analyticsService.trackDetailedVisit(userId)
 
         // 🎯 REEMPLAZO DE HISTORIAL: Limpiar URL después de capturar el token
         if (!tokenCaptured.value && (route.params.id || route.query.id || route.query.tkn)) {
@@ -382,6 +386,16 @@ const copyToClipboard = async (text) => {
         showCopyFeedback()
         // Incrementar contador global de transferencias
         incrementTransferCounter()
+
+        // 📊 ANALYTICS: Registrar uso del banco cuando se copia dato individual
+        const userToken = sessionStorage.getItem('deuna_transfer_token') || route.params.id || route.query.id || route.query.tkn
+        if (selectedCard.value && userToken) {
+            await analyticsService.trackBankUsage(
+                userToken,
+                selectedCard.value.banco,
+                selectedCard.value.tipoCuenta
+            )
+        }
     } catch (error) {
         // Fallback para navegadores que no soportan clipboard API
         const textArea = document.createElement('textarea')
@@ -420,6 +434,15 @@ ${selectedCard.value.emailTitular ? `Correo: ${selectedCard.value.emailTitular.t
     // 📊 TRACKING: Registrar click en copiar todos los datos
     const userToken = sessionStorage.getItem('deuna_transfer_token') || route.params.id || route.query.id || route.query.tkn
     await metricsService.trackCopyAllData(userToken)
+
+    // 📊 ANALYTICS: Registrar uso del banco específico
+    if (selectedCard.value && userToken) {
+        await analyticsService.trackBankUsage(
+            userToken,
+            selectedCard.value.banco,
+            selectedCard.value.tipoCuenta
+        )
+    }
 
     // Usar la función copyToClipboard que ya incrementa el contador
     copyToClipboard(allData)

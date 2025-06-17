@@ -167,11 +167,16 @@
                 <div class="stats-header">
                     <h3>📊 Estadísticas Detalladas</h3>
                     <div class="period-selector">
-                        <select v-model="periodoEstadisticas" @change="cargarEstadisticas">
+                        <select v-model="periodoEstadisticas" @change="cargarEstadisticas" :disabled="loadingStats">
+                            <option value="1">Hoy</option>
                             <option value="7">Últimos 7 días</option>
                             <option value="30">Últimos 30 días</option>
-                            <option value="90">Últimos 90 días</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="365">Último año</option>
                         </select>
+                        <div v-if="loadingStats" class="loading-indicator">
+                            <div class="spinner-small"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -179,13 +184,22 @@
                     <div class="stats-card">
                         <h4>📈 Visitas por Día</h4>
                         <div class="chart-placeholder">
-                            <p>Gráfico de visitas diarias</p>
-                            <div class="mock-chart">
-                                <div class="chart-bar" style="height: 60%"></div>
-                                <div class="chart-bar" style="height: 80%"></div>
-                                <div class="chart-bar" style="height: 40%"></div>
-                                <div class="chart-bar" style="height: 90%"></div>
-                                <div class="chart-bar" style="height: 70%"></div>
+                            <p v-if="estadisticas.visitasPorDia.length === 0">No hay datos de visitas aún</p>
+                            <div v-else class="real-chart">
+                                <div class="chart-container">
+                                    <div v-for="(day, index) in estadisticas.visitasPorDia.slice(-7)" :key="index"
+                                        class="chart-bar"
+                                        :style="{ height: getBarHeight(day.count, estadisticas.visitasPorDia) + '%' }"
+                                        :title="`${day.day}: ${day.count} visitas`">
+                                        <span class="bar-value">{{ day.count }}</span>
+                                    </div>
+                                </div>
+                                <div class="chart-labels">
+                                    <span v-for="(day, index) in estadisticas.visitasPorDia.slice(-7)" :key="index"
+                                        class="day-label">
+                                        {{ day.day }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -193,26 +207,20 @@
                     <div class="stats-card">
                         <h4>🏦 Bancos Preferidos</h4>
                         <div class="bank-stats">
-                            <div class="bank-item">
-                                <span>Banco de Chile</span>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 45%"></div>
-                                </div>
-                                <span>45%</span>
+                            <div v-if="estadisticas.bancosMasUsados.length === 0" class="no-data">
+                                <p>No hay datos de bancos utilizados aún</p>
                             </div>
-                            <div class="bank-item">
-                                <span>Banco Santander</span>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 30%"></div>
+                            <div v-else>
+                                <div v-for="(bank, index) in estadisticas.bancosMasUsados.slice(0, 5)" :key="index"
+                                    class="bank-item">
+                                    <span class="bank-name">{{ bank.bank }}</span>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"
+                                            :style="{ width: getBankPercentage(bank.count, estadisticas.bancosMasUsados) + '%' }">
+                                        </div>
+                                    </div>
+                                    <span class="bank-count">{{ bank.count }} usos</span>
                                 </div>
-                                <span>30%</span>
-                            </div>
-                            <div class="bank-item">
-                                <span>Banco Estado</span>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 25%"></div>
-                                </div>
-                                <span>25%</span>
                             </div>
                         </div>
                     </div>
@@ -220,20 +228,16 @@
                     <div class="stats-card">
                         <h4>📱 Dispositivos</h4>
                         <div class="device-stats">
-                            <div class="device-item">
-                                <span class="device-icon">📱</span>
-                                <span>Móvil</span>
-                                <span class="device-percentage">75%</span>
+                            <div v-if="estadisticas.dispositivosUsados.length === 0" class="no-data">
+                                <p>No hay datos de dispositivos aún</p>
                             </div>
-                            <div class="device-item">
-                                <span class="device-icon">💻</span>
-                                <span>Desktop</span>
-                                <span class="device-percentage">20%</span>
-                            </div>
-                            <div class="device-item">
-                                <span class="device-icon">📟</span>
-                                <span>Tablet</span>
-                                <span class="device-percentage">5%</span>
+                            <div v-else>
+                                <div v-for="(device, index) in estadisticas.dispositivosUsados" :key="index"
+                                    class="device-item">
+                                    <span class="device-icon">{{ getDeviceIcon(device.device) }}</span>
+                                    <span class="device-name">{{ getDeviceName(device.device) }}</span>
+                                    <span class="device-percentage">{{ device.percentage }}%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -456,6 +460,7 @@ import QRModal from '@/components/user/QRModal.vue'
 import GeoSelector from '@/components/forms/GeoSelector.vue'
 import { incrementTransferCounter } from '@/store/transferCounter'
 import { metricsService } from '@/services/metricsService'
+import { analyticsService } from '@/services/analyticsService'
 
 const authStore = useAuthStore()
 const loading = ref(true)
@@ -467,6 +472,7 @@ const showEditProfileModal = ref(false)
 const showChangePasswordModal = ref(false)
 const editingCard = ref(null)
 const periodoEstadisticas = ref(30)
+const loadingStats = ref(false)
 
 // Datos del usuario
 const userInfo = ref({
@@ -606,20 +612,33 @@ const loadTarjetas = async () => {
 
 const cargarEstadisticas = async () => {
     try {
+        loadingStats.value = true
+
         // Cargar métricas personales del usuario
         const userMetrics = await metricsService.getUserMetrics(authStore.user.uid)
         metricsPersonales.value = userMetrics
 
+        // Cargar estadísticas detalladas con analytics
+        const detailedStats = await analyticsService.getUserCompleteStats(
+            authStore.user.uid,
+            periodoEstadisticas.value
+        )
+
         // Actualizar estadísticas con datos reales
         estadisticas.value = {
             visitasTotales: userMetrics.visitasPagina || 0,
-            escaneosQR: userMetrics.datosCopiadosCount || 0, // Usar datos copiados como "escaneos"
-            visitasPorDia: [],
-            bancosMasUsados: [],
-            dispositivosUsados: []
+            escaneosQR: userMetrics.datosCopiadosCount || 0,
+            visitasPorDia: detailedStats.visitsByDay || [],
+            bancosMasUsados: detailedStats.topBanks || [],
+            dispositivosUsados: detailedStats.topDevices || []
         }
 
-        console.log('📊 Estadísticas cargadas:', userMetrics)
+        console.log('📊 Estadísticas detalladas cargadas:', {
+            userMetrics,
+            detailedStats,
+            estadisticas: estadisticas.value,
+            periodo: periodoEstadisticas.value
+        })
     } catch (error) {
         console.error('Error cargando estadísticas:', error)
         // Mantener valores por defecto en caso de error
@@ -630,6 +649,8 @@ const cargarEstadisticas = async () => {
             bancosMasUsados: [],
             dispositivosUsados: []
         }
+    } finally {
+        loadingStats.value = false
     }
 }
 
@@ -698,6 +719,39 @@ const getBancoTypeLabel = (type) => {
         'PREPAID_CARD': 'Prepagada'
     }
     return labels[type] || 'Banco'
+}
+
+// Funciones auxiliares para gráficos de estadísticas
+const getBarHeight = (count, allData) => {
+    if (!allData || allData.length === 0) return 0
+    const maxCount = Math.max(...allData.map(d => d.count))
+    if (maxCount === 0) return 0
+    return Math.max((count / maxCount) * 100, 5) // Mínimo 5% para visibilidad
+}
+
+const getBankPercentage = (count, allBanks) => {
+    if (!allBanks || allBanks.length === 0) return 0
+    const totalCount = allBanks.reduce((sum, bank) => sum + bank.count, 0)
+    if (totalCount === 0) return 0
+    return Math.round((count / totalCount) * 100)
+}
+
+const getDeviceIcon = (device) => {
+    const icons = {
+        'mobile': '📱',
+        'desktop': '💻',
+        'tablet': '📟'
+    }
+    return icons[device.toLowerCase()] || '🖥️'
+}
+
+const getDeviceName = (device) => {
+    const names = {
+        'mobile': 'Móvil',
+        'desktop': 'Escritorio',
+        'tablet': 'Tablet'
+    }
+    return names[device.toLowerCase()] || device
 }
 
 const dismissNotification = (id) => {
