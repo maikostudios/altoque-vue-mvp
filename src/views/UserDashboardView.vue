@@ -61,18 +61,18 @@
             <div class="stat-card" v-if="userInfo.esPremium">
                 <div class="stat-icon">👁️</div>
                 <div class="stat-content">
-                    <h3>Visitas Totales</h3>
-                    <p class="stat-number">{{ estadisticas.visitasTotales }}</p>
-                    <span class="stat-label">Este mes</span>
+                    <h3>Visitas a tus Datos</h3>
+                    <p class="stat-number">{{ metricsPersonales.visitasPagina }}</p>
+                    <span class="stat-label">Total de visitas</span>
                 </div>
             </div>
 
             <div class="stat-card" v-if="userInfo.esPremium">
-                <div class="stat-icon">📱</div>
+                <div class="stat-icon">📋</div>
                 <div class="stat-content">
-                    <h3>Escaneos QR</h3>
-                    <p class="stat-number">{{ estadisticas.escaneosQR }}</p>
-                    <span class="stat-label">Este mes</span>
+                    <h3>Datos Copiados</h3>
+                    <p class="stat-number">{{ metricsPersonales.datosCopiadosCount }}</p>
+                    <span class="stat-label">Total de copias</span>
                 </div>
             </div>
 
@@ -455,6 +455,7 @@ import BankCardForm from '@/components/user/BankCardForm.vue'
 import QRModal from '@/components/user/QRModal.vue'
 import GeoSelector from '@/components/forms/GeoSelector.vue'
 import { incrementTransferCounter } from '@/store/transferCounter'
+import { metricsService } from '@/services/metricsService'
 
 const authStore = useAuthStore()
 const loading = ref(true)
@@ -489,6 +490,16 @@ const estadisticas = ref({
     visitasPorDia: [],
     bancosMasUsados: [],
     dispositivosUsados: []
+})
+
+// Métricas personales del usuario
+const metricsPersonales = ref({
+    visitasPagina: 0,
+    datosCopiadosCount: 0,
+    primeraVisita: null,
+    ultimaVisita: null,
+    primerCopy: null,
+    ultimoCopy: null
 })
 
 // Notificaciones
@@ -594,13 +605,31 @@ const loadTarjetas = async () => {
 }
 
 const cargarEstadisticas = async () => {
-    // Simular carga de estadísticas
-    estadisticas.value = {
-        visitasTotales: Math.floor(Math.random() * 1000),
-        escaneosQR: Math.floor(Math.random() * 500),
-        visitasPorDia: [],
-        bancosMasUsados: [],
-        dispositivosUsados: []
+    try {
+        // Cargar métricas personales del usuario
+        const userMetrics = await metricsService.getUserMetrics(authStore.user.uid)
+        metricsPersonales.value = userMetrics
+
+        // Actualizar estadísticas con datos reales
+        estadisticas.value = {
+            visitasTotales: userMetrics.visitasPagina || 0,
+            escaneosQR: userMetrics.datosCopiadosCount || 0, // Usar datos copiados como "escaneos"
+            visitasPorDia: [],
+            bancosMasUsados: [],
+            dispositivosUsados: []
+        }
+
+        console.log('📊 Estadísticas cargadas:', userMetrics)
+    } catch (error) {
+        console.error('Error cargando estadísticas:', error)
+        // Mantener valores por defecto en caso de error
+        estadisticas.value = {
+            visitasTotales: 0,
+            escaneosQR: 0,
+            visitasPorDia: [],
+            bancosMasUsados: [],
+            dispositivosUsados: []
+        }
     }
 }
 

@@ -95,6 +95,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "user_metrics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "ultimaVisita",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

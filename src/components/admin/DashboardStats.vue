@@ -26,16 +26,24 @@
             <div class="stat-card">
                 <div class="stat-icon">💳</div>
                 <div class="stat-content">
-                    <h3>Cuentas Bancarias</h3>
-                    <p class="stat-number">{{ stats.bankAccounts }}</p>
+                    <h3>Tarjetas Registradas</h3>
+                    <p class="stat-number">{{ stats.totalTarjetas }}</p>
                 </div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon">📈</div>
+                <div class="stat-icon">👁️</div>
                 <div class="stat-content">
-                    <h3>Transacciones</h3>
-                    <p class="stat-number">{{ stats.transactions }}</p>
+                    <h3>Visitas a Datos</h3>
+                    <p class="stat-number">{{ stats.visitasDatosTransferencia }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-content">
+                    <h3>Datos Copiados</h3>
+                    <p class="stat-number">{{ stats.datosCopiadosTotal }}</p>
                 </div>
             </div>
 
@@ -70,13 +78,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { userService } from '@/services/userService'
 import { bankAccountService } from '@/services/bankAccountService'
+import { metricsService } from '@/services/metricsService'
 
 const stats = ref({
     totalUsers: 0,
-    bankAccounts: 0,
-    transactions: 0,
+    totalTarjetas: 0,
+    visitasDatosTransferencia: 0,
+    datosCopiadosTotal: 0,
     revenue: 0
 })
 
@@ -88,17 +97,18 @@ const loadStats = async () => {
         loading.value = true
         error.value = null
 
-        // Cargar estadísticas de usuarios
-        const userStats = await userService.getUserStats()
+        // Cargar métricas globales del nuevo servicio
+        const globalMetrics = await metricsService.getGlobalMetrics()
 
-        // Cargar estadísticas de cuentas bancarias
+        // Cargar estadísticas de cuentas bancarias para el saldo
         const bankStats = await bankAccountService.getBankAccountStats()
 
         stats.value = {
-            totalUsers: userStats.total,
-            bankAccounts: bankStats.total,
-            transactions: 0, // TODO: Implementar servicio de transacciones
-            revenue: bankStats.saldoTotal
+            totalUsers: globalMetrics.totalUsuarios || 0,
+            totalTarjetas: globalMetrics.totalTarjetas || 0,
+            visitasDatosTransferencia: globalMetrics.visitasDatosTransferencia || 0,
+            datosCopiadosTotal: globalMetrics.datosCopiadosTotal || 0,
+            revenue: bankStats.saldoTotal || 0
         }
     } catch (err) {
         console.error('Error cargando estadísticas:', err)
@@ -107,8 +117,9 @@ const loadStats = async () => {
         // Datos de fallback
         stats.value = {
             totalUsers: 0,
-            bankAccounts: 0,
-            transactions: 0,
+            totalTarjetas: 0,
+            visitasDatosTransferencia: 0,
+            datosCopiadosTotal: 0,
             revenue: 0
         }
     } finally {

@@ -72,6 +72,20 @@ service cloud.firestore {
       // Solo los admins pueden leer y escribir configuraciones
       allow read, write: if isAdmin();
     }
+
+    // Reglas para métricas globales
+    match /metrics/{document} {
+      // Todos los usuarios autenticados pueden leer métricas globales
+      allow read: if isAuthenticated();
+      // Solo los admins pueden escribir métricas globales
+      allow write: if isAdmin();
+    }
+
+    // Reglas para métricas por usuario
+    match /user_metrics/{userId} {
+      // Los usuarios pueden leer y escribir sus propias métricas
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
     
     // Reglas para logs de auditoría
     match /audit_logs/{logId} {

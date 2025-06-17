@@ -183,6 +183,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { db } from '@/firebase'
 import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore'
 import { incrementTransferCounter } from '@/store/transferCounter'
+import { metricsService } from '@/services/metricsService'
 
 const route = useRoute()
 const router = useRouter()
@@ -219,6 +220,9 @@ const loadUserData = async () => {
         }
 
         console.log('🔍 Buscando usuario con ID:', userId)
+
+        // 📊 TRACKING: Registrar visita a la página
+        await metricsService.trackPageVisit(userId)
 
         // 🎯 REEMPLAZO DE HISTORIAL: Limpiar URL después de capturar el token
         if (!tokenCaptured.value && (route.params.id || route.query.id || route.query.tkn)) {
@@ -392,7 +396,7 @@ const copyToClipboard = async (text) => {
     }
 }
 
-const copyAllData = () => {
+const copyAllData = async () => {
     // Formato específico para formularios bancarios
     const formatRut = (rut) => {
         if (!rut) return ''
@@ -412,6 +416,10 @@ Banco: ${selectedCard.value.banco.toUpperCase()}
 Tipo de cuenta: ${selectedCard.value.tipoCuenta}
 Número de cuenta: ${formatAccountNumber(selectedCard.value.numeroCuenta)}
 ${selectedCard.value.emailTitular ? `Correo: ${selectedCard.value.emailTitular.toLowerCase()}` : ''}`
+
+    // 📊 TRACKING: Registrar click en copiar todos los datos
+    const userToken = sessionStorage.getItem('deuna_transfer_token') || route.params.id || route.query.id || route.query.tkn
+    await metricsService.trackCopyAllData(userToken)
 
     // Usar la función copyToClipboard que ya incrementa el contador
     copyToClipboard(allData)
