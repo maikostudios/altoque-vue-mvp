@@ -15,11 +15,6 @@
         <li v-if="authStore.role === 'vendedor'">
           <router-link to="/vendedor" class="nav-link">Vendedor</router-link>
         </li>
-        <li>
-          <router-link :to="{ name: 'PublicLanding', params: { username: 'ejemplo' } }" class="nav-link">
-            Landing Pública
-          </router-link>
-        </li>
       </ul>
       <button v-if="authStore.user" @click="logout" class="logout-btn">
         Cerrar sesión

@@ -9,7 +9,9 @@
             <div class="qr-body">
                 <div class="qr-section">
                     <div class="qr-container">
-                        <div ref="qrCodeElement" class="qr-code"></div>
+                        <qrcode-vue :value="qrUrl" :size="qrSize" level="H" render-as="canvas"
+                            :background="qrBackground" :foreground="qrForeground" :margin="2" class="qr-code"
+                            ref="qrCodeElement" />
                     </div>
 
                     <div class="qr-info">
@@ -98,8 +100,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import QRCode from 'qrcode'
+import { ref, computed } from 'vue'
+import QrcodeVue from 'qrcode.vue'
 import { incrementTransferCounter } from '@/store/transferCounter'
 
 const props = defineProps({
@@ -113,6 +115,11 @@ const emit = defineEmits(['close'])
 
 const qrCodeElement = ref(null)
 
+// Propiedades del QR
+const qrSize = ref(256)
+const qrBackground = ref('#ffffff')
+const qrForeground = ref('#121212')
+
 // Computed
 const qrUrl = computed(() => {
     // Usar la nueva URL SEO-friendly
@@ -124,20 +131,6 @@ const canShare = computed(() => {
 })
 
 // Funciones
-const generateQR = async () => {
-    try {
-        await QRCode.toCanvas(qrCodeElement.value, qrUrl.value, {
-            width: 256,
-            margin: 2,
-            color: {
-                dark: '#121212',
-                light: '#FFFFFF'
-            }
-        })
-    } catch (error) {
-        console.error('Error generando QR:', error)
-    }
-}
 
 const getDefaultGradient = () => {
     // Usar el gradiente por defecto del tema
@@ -184,11 +177,19 @@ const copiarEnlace = async () => {
 
 const descargarQR = () => {
     try {
-        const canvas = qrCodeElement.value
+        // Buscar el canvas dentro del componente qrcode-vue
+        const qrComponent = qrCodeElement.value
+        const canvas = qrComponent?.$el?.querySelector('canvas')
+
+        if (!canvas) {
+            alert('Error: No se pudo encontrar el código QR para descargar')
+            return
+        }
+
         const link = document.createElement('a')
         const userName = `${props.userInfo.nombre}-${props.userInfo.apellido}`.replace(/\s+/g, '-').toLowerCase()
         link.download = `qr-publico-${userName}.png`
-        link.href = canvas.toDataURL()
+        link.href = canvas.toDataURL('image/png')
         link.click()
     } catch (error) {
         console.error('Error descargando QR:', error)
@@ -208,9 +209,7 @@ const compartir = async () => {
     }
 }
 
-onMounted(() => {
-    generateQR()
-})
+// El QR se genera automáticamente por el componente qrcode-vue
 </script>
 
 <style scoped>
@@ -294,6 +293,11 @@ onMounted(() => {
 
 .qr-code {
     border-radius: 0.5rem;
+}
+
+.qr-code canvas {
+    border-radius: 0.5rem;
+    display: block;
 }
 
 .qr-info {
