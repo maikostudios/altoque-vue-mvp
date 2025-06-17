@@ -159,14 +159,212 @@ const loadCountries = async () => {
     }
 }
 
+// Datos estáticos de Chile (más confiables que la API gubernamental)
+const chileanRegions = [
+    { codigo: '1', nombre: 'Tarapacá' },
+    { codigo: '2', nombre: 'Antofagasta' },
+    { codigo: '3', nombre: 'Atacama' },
+    { codigo: '4', nombre: 'Coquimbo' },
+    { codigo: '5', nombre: 'Valparaíso' },
+    { codigo: '6', nombre: 'Libertador General Bernardo O\'Higgins' },
+    { codigo: '7', nombre: 'Maule' },
+    { codigo: '8', nombre: 'Biobío' },
+    { codigo: '9', nombre: 'La Araucanía' },
+    { codigo: '10', nombre: 'Los Lagos' },
+    { codigo: '11', nombre: 'Aysén del General Carlos Ibáñez del Campo' },
+    { codigo: '12', nombre: 'Magallanes y de la Antártica Chilena' },
+    { codigo: '13', nombre: 'Metropolitana de Santiago' },
+    { codigo: '14', nombre: 'Los Ríos' },
+    { codigo: '15', nombre: 'Arica y Parinacota' },
+    { codigo: '16', nombre: 'Ñuble' }
+]
+
+const chileanProvinces = {
+    '13': [ // Metropolitana
+        { codigo: '131', nombre: 'Santiago' },
+        { codigo: '132', nombre: 'Cordillera' },
+        { codigo: '133', nombre: 'Chacabuco' },
+        { codigo: '134', nombre: 'Maipo' },
+        { codigo: '135', nombre: 'Melipilla' },
+        { codigo: '136', nombre: 'Talagante' }
+    ],
+    '5': [ // Valparaíso
+        { codigo: '51', nombre: 'Valparaíso' },
+        { codigo: '52', nombre: 'Isla de Pascua' },
+        { codigo: '53', nombre: 'Los Andes' },
+        { codigo: '54', nombre: 'Petorca' },
+        { codigo: '55', nombre: 'Quillota' },
+        { codigo: '56', nombre: 'San Antonio' },
+        { codigo: '57', nombre: 'San Felipe de Aconcagua' },
+        { codigo: '58', nombre: 'Marga Marga' }
+    ],
+    '8': [ // Biobío
+        { codigo: '81', nombre: 'Concepción' },
+        { codigo: '82', nombre: 'Arauco' },
+        { codigo: '83', nombre: 'Biobío' }
+    ],
+    '9': [ // La Araucanía
+        { codigo: '91', nombre: 'Cautín' },
+        { codigo: '92', nombre: 'Malleco' }
+    ],
+    '4': [ // Coquimbo
+        { codigo: '41', nombre: 'Elqui' },
+        { codigo: '42', nombre: 'Choapa' },
+        { codigo: '43', nombre: 'Limarí' }
+    ],
+    '2': [ // Antofagasta
+        { codigo: '21', nombre: 'Antofagasta' },
+        { codigo: '22', nombre: 'El Loa' },
+        { codigo: '23', nombre: 'Tocopilla' }
+    ],
+    '10': [ // Los Lagos
+        { codigo: '101', nombre: 'Llanquihue' },
+        { codigo: '102', nombre: 'Chiloé' },
+        { codigo: '103', nombre: 'Osorno' },
+        { codigo: '104', nombre: 'Palena' }
+    ],
+    '1': [ // Tarapacá
+        { codigo: '11', nombre: 'Iquique' },
+        { codigo: '14', nombre: 'Tamarugal' }
+    ],
+    '15': [ // Arica y Parinacota
+        { codigo: '151', nombre: 'Arica' },
+        { codigo: '152', nombre: 'Parinacota' }
+    ]
+}
+
+const chileanCommunes = {
+    '131': [ // Santiago
+        { codigo: '13101', nombre: 'Santiago' },
+        { codigo: '13102', nombre: 'Cerrillos' },
+        { codigo: '13103', nombre: 'Cerro Navia' },
+        { codigo: '13104', nombre: 'Conchalí' },
+        { codigo: '13105', nombre: 'El Bosque' },
+        { codigo: '13106', nombre: 'Estación Central' },
+        { codigo: '13107', nombre: 'Huechuraba' },
+        { codigo: '13108', nombre: 'Independencia' },
+        { codigo: '13109', nombre: 'La Cisterna' },
+        { codigo: '13110', nombre: 'La Florida' },
+        { codigo: '13111', nombre: 'La Granja' },
+        { codigo: '13112', nombre: 'La Pintana' },
+        { codigo: '13113', nombre: 'La Reina' },
+        { codigo: '13114', nombre: 'Las Condes' },
+        { codigo: '13115', nombre: 'Lo Barnechea' },
+        { codigo: '13116', nombre: 'Lo Espejo' },
+        { codigo: '13117', nombre: 'Lo Prado' },
+        { codigo: '13118', nombre: 'Macul' },
+        { codigo: '13119', nombre: 'Maipú' },
+        { codigo: '13120', nombre: 'Ñuñoa' },
+        { codigo: '13121', nombre: 'Pedro Aguirre Cerda' },
+        { codigo: '13122', nombre: 'Peñalolén' },
+        { codigo: '13123', nombre: 'Providencia' },
+        { codigo: '13124', nombre: 'Pudahuel' },
+        { codigo: '13125', nombre: 'Quilicura' },
+        { codigo: '13126', nombre: 'Quinta Normal' },
+        { codigo: '13127', nombre: 'Recoleta' },
+        { codigo: '13128', nombre: 'Renca' },
+        { codigo: '13129', nombre: 'San Joaquín' },
+        { codigo: '13130', nombre: 'San Miguel' },
+        { codigo: '13131', nombre: 'San Ramón' },
+        { codigo: '13132', nombre: 'Vitacura' }
+    ],
+    '51': [ // Valparaíso
+        { codigo: '5101', nombre: 'Valparaíso' },
+        { codigo: '5102', nombre: 'Casablanca' },
+        { codigo: '5103', nombre: 'Concón' },
+        { codigo: '5104', nombre: 'Juan Fernández' },
+        { codigo: '5105', nombre: 'Puchuncaví' },
+        { codigo: '5106', nombre: 'Quintero' },
+        { codigo: '5107', nombre: 'Viña del Mar' }
+    ],
+    '81': [ // Concepción
+        { codigo: '8101', nombre: 'Concepción' },
+        { codigo: '8102', nombre: 'Coronel' },
+        { codigo: '8103', nombre: 'Chiguayante' },
+        { codigo: '8104', nombre: 'Florida' },
+        { codigo: '8105', nombre: 'Hualqui' },
+        { codigo: '8106', nombre: 'Lota' },
+        { codigo: '8107', nombre: 'Penco' },
+        { codigo: '8108', nombre: 'San Pedro de la Paz' },
+        { codigo: '8109', nombre: 'Santa Juana' },
+        { codigo: '8110', nombre: 'Talcahuano' },
+        { codigo: '8111', nombre: 'Tomé' },
+        { codigo: '8112', nombre: 'Hualpén' }
+    ],
+    '91': [ // Cautín
+        { codigo: '9101', nombre: 'Temuco' },
+        { codigo: '9102', nombre: 'Carahue' },
+        { codigo: '9103', nombre: 'Cunco' },
+        { codigo: '9104', nombre: 'Curarrehue' },
+        { codigo: '9105', nombre: 'Freire' },
+        { codigo: '9106', nombre: 'Galvarino' },
+        { codigo: '9107', nombre: 'Gorbea' },
+        { codigo: '9108', nombre: 'Lautaro' },
+        { codigo: '9109', nombre: 'Loncoche' },
+        { codigo: '9110', nombre: 'Melipeuco' },
+        { codigo: '9111', nombre: 'Nueva Imperial' },
+        { codigo: '9112', nombre: 'Padre las Casas' },
+        { codigo: '9113', nombre: 'Perquenco' },
+        { codigo: '9114', nombre: 'Pitrufquén' },
+        { codigo: '9115', nombre: 'Pucón' },
+        { codigo: '9116', nombre: 'Saavedra' },
+        { codigo: '9117', nombre: 'Teodoro Schmidt' },
+        { codigo: '9118', nombre: 'Toltén' },
+        { codigo: '9119', nombre: 'Vilcún' },
+        { codigo: '9120', nombre: 'Villarrica' }
+    ],
+    '41': [ // Elqui
+        { codigo: '4101', nombre: 'La Serena' },
+        { codigo: '4102', nombre: 'Coquimbo' },
+        { codigo: '4103', nombre: 'Andacollo' },
+        { codigo: '4104', nombre: 'La Higuera' },
+        { codigo: '4105', nombre: 'Paiguano' },
+        { codigo: '4106', nombre: 'Vicuña' }
+    ],
+    '21': [ // Antofagasta
+        { codigo: '2101', nombre: 'Antofagasta' },
+        { codigo: '2102', nombre: 'Mejillones' },
+        { codigo: '2103', nombre: 'Sierra Gorda' },
+        { codigo: '2104', nombre: 'Taltal' }
+    ],
+    '101': [ // Llanquihue
+        { codigo: '10101', nombre: 'Puerto Montt' },
+        { codigo: '10102', nombre: 'Calbuco' },
+        { codigo: '10103', nombre: 'Cochamó' },
+        { codigo: '10104', nombre: 'Fresia' },
+        { codigo: '10105', nombre: 'Frutillar' },
+        { codigo: '10106', nombre: 'Los Muermos' },
+        { codigo: '10107', nombre: 'Llanquihue' },
+        { codigo: '10108', nombre: 'Maullín' },
+        { codigo: '10109', nombre: 'Puerto Varas' }
+    ],
+    '103': [ // Osorno
+        { codigo: '10301', nombre: 'Osorno' },
+        { codigo: '10302', nombre: 'Puerto Octay' },
+        { codigo: '10303', nombre: 'Purranque' },
+        { codigo: '10304', nombre: 'Puyehue' },
+        { codigo: '10305', nombre: 'Río Negro' },
+        { codigo: '10306', nombre: 'San Juan de la Costa' },
+        { codigo: '10307', nombre: 'San Pablo' }
+    ],
+    '11': [ // Iquique
+        { codigo: '1101', nombre: 'Iquique' },
+        { codigo: '1107', nombre: 'Alto Hospicio' }
+    ],
+    '151': [ // Arica
+        { codigo: '15101', nombre: 'Arica' },
+        { codigo: '15102', nombre: 'Camarones' }
+    ]
+}
+
 const loadRegions = async () => {
     try {
         loadingRegions.value = true
-        const response = await fetch('https://apis.digital.gob.cl/dpa/regiones')
-        const data = await response.json()
 
-        regions.value = data.sort((a, b) => a.nombre.localeCompare(b.nombre))
-        console.log('✅ Regiones cargadas:', regions.value.length)
+        // Usar datos estáticos en lugar de la API problemática
+        regions.value = chileanRegions.sort((a, b) => a.nombre.localeCompare(b.nombre))
+        console.log('✅ Regiones cargadas (datos estáticos):', regions.value.length)
+
     } catch (error) {
         console.error('❌ Error cargando regiones:', error)
     } finally {
@@ -177,11 +375,12 @@ const loadRegions = async () => {
 const loadProvinces = async (regionCode) => {
     try {
         loadingProvinces.value = true
-        const response = await fetch(`https://apis.digital.gob.cl/dpa/regiones/${regionCode}/provincias`)
-        const data = await response.json()
 
-        provinces.value = data.sort((a, b) => a.nombre.localeCompare(b.nombre))
-        console.log('✅ Provincias cargadas:', provinces.value.length)
+        // Usar datos estáticos en lugar de la API problemática
+        const provincesData = chileanProvinces[regionCode] || []
+        provinces.value = provincesData.sort((a, b) => a.nombre.localeCompare(b.nombre))
+        console.log('✅ Provincias cargadas (datos estáticos):', provinces.value.length)
+
     } catch (error) {
         console.error('❌ Error cargando provincias:', error)
     } finally {
@@ -192,11 +391,12 @@ const loadProvinces = async (regionCode) => {
 const loadCommunes = async (provinceCode) => {
     try {
         loadingCommunes.value = true
-        const response = await fetch(`https://apis.digital.gob.cl/dpa/provincias/${provinceCode}/comunas`)
-        const data = await response.json()
 
-        communes.value = data.sort((a, b) => a.nombre.localeCompare(b.nombre))
-        console.log('✅ Comunas cargadas:', communes.value.length)
+        // Usar datos estáticos en lugar de la API problemática
+        const communesData = chileanCommunes[provinceCode] || []
+        communes.value = communesData.sort((a, b) => a.nombre.localeCompare(b.nombre))
+        console.log('✅ Comunas cargadas (datos estáticos):', communes.value.length)
+
     } catch (error) {
         console.error('❌ Error cargando comunas:', error)
     } finally {

@@ -268,7 +268,8 @@
                             <p><strong>Email:</strong> {{ userInfo.email }}</p>
                             <p><strong>RUT:</strong> {{ userInfo.rut }}</p>
                             <p><strong>Teléfono:</strong> {{ userInfo.telefono }}</p>
-                            <button class="btn btn-secondary btn-sm">Editar Información</button>
+                            <button @click="openEditProfile" class="btn btn-secondary btn-sm">Editar
+                                Información</button>
                         </div>
                     </div>
 
@@ -326,7 +327,8 @@
                     <div class="config-card">
                         <h4>🔒 Seguridad</h4>
                         <div class="config-content">
-                            <button class="btn btn-secondary btn-sm">Cambiar Contraseña</button>
+                            <button @click="openChangePassword" class="btn btn-secondary btn-sm">Cambiar
+                                Contraseña</button>
                             <button @click="authStore.logout" class="btn btn-ghost btn-sm">Cerrar Sesión</button>
                         </div>
                     </div>
@@ -349,6 +351,90 @@
 
         <!-- Modal QR -->
         <QRModal v-if="showQRModal" :user-info="userInfo" @close="closeQRModal" />
+
+        <!-- Modal Editar Perfil -->
+        <div v-if="showEditProfileModal" class="modal-overlay" @click="closeEditProfile">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    <h3>✏️ Editar Información Personal</h3>
+                    <button @click="closeEditProfile" class="close-btn">✕</button>
+                </div>
+
+                <form @submit.prevent="saveProfile" class="edit-profile-form">
+                    <div class="form-group">
+                        <label for="nombre">Nombre *</label>
+                        <input id="nombre" v-model="editForm.nombre" type="text" class="form-input" required
+                            placeholder="Ingresa tu nombre">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apellido">Apellido *</label>
+                        <input id="apellido" v-model="editForm.apellido" type="text" class="form-input" required
+                            placeholder="Ingresa tu apellido">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rut">RUT</label>
+                        <input id="rut" v-model="editForm.rut" type="text" class="form-input"
+                            placeholder="12.345.678-9">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input id="telefono" v-model="editForm.telefono" type="tel" class="form-input"
+                            placeholder="+56 9 1234 5678">
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" @click="closeEditProfile" class="btn btn-ghost">
+                            Cancelar
+                        </button>
+                        <button type="submit" :disabled="submitting" class="btn btn-primary">
+                            {{ submitting ? 'Guardando...' : 'Guardar Cambios' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Cambiar Contraseña -->
+        <div v-if="showChangePasswordModal" class="modal-overlay" @click="closeChangePassword">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    <h3>🔒 Cambiar Contraseña</h3>
+                    <button @click="closeChangePassword" class="close-btn">✕</button>
+                </div>
+
+                <form @submit.prevent="changePassword" class="change-password-form">
+                    <div class="form-group">
+                        <label for="currentPassword">Contraseña Actual *</label>
+                        <input id="currentPassword" v-model="passwordForm.currentPassword" type="password"
+                            class="form-input" required placeholder="Ingresa tu contraseña actual">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword">Nueva Contraseña *</label>
+                        <input id="newPassword" v-model="passwordForm.newPassword" type="password" class="form-input"
+                            required minlength="6" placeholder="Mínimo 6 caracteres">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Nueva Contraseña *</label>
+                        <input id="confirmPassword" v-model="passwordForm.confirmPassword" type="password"
+                            class="form-input" required placeholder="Repite la nueva contraseña">
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" @click="closeChangePassword" class="btn btn-ghost">
+                            Cancelar
+                        </button>
+                        <button type="submit" :disabled="submitting" class="btn btn-primary">
+                            {{ submitting ? 'Cambiando...' : 'Cambiar Contraseña' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -367,6 +453,8 @@ const submitting = ref(false)
 const activeTab = ref('tarjetas')
 const showCreateCardModal = ref(false)
 const showQRModal = ref(false)
+const showEditProfileModal = ref(false)
+const showChangePasswordModal = ref(false)
 const editingCard = ref(null)
 const periodoEstadisticas = ref(30)
 
@@ -401,6 +489,21 @@ const notificaciones = ref([])
 const configuraciones = ref({
     notificacionesEmail: true,
     notificacionesVencimiento: true
+})
+
+// Formulario de edición de perfil
+const editForm = ref({
+    nombre: '',
+    apellido: '',
+    telefono: '',
+    rut: ''
+})
+
+// Formulario de cambio de contraseña
+const passwordForm = ref({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
 })
 
 // Computed
@@ -687,6 +790,98 @@ const guardarConfiguraciones = async () => {
         alert('Configuraciones guardadas')
     } catch (error) {
         console.error('Error guardando configuraciones:', error)
+    }
+}
+
+// Funciones para editar perfil
+const openEditProfile = () => {
+    // Cargar datos actuales en el formulario
+    editForm.value = {
+        nombre: userInfo.value.nombre || '',
+        apellido: userInfo.value.apellido || '',
+        telefono: userInfo.value.telefono || '',
+        rut: userInfo.value.rut || ''
+    }
+    showEditProfileModal.value = true
+}
+
+const closeEditProfile = () => {
+    showEditProfileModal.value = false
+    editForm.value = {
+        nombre: '',
+        apellido: '',
+        telefono: '',
+        rut: ''
+    }
+}
+
+const saveProfile = async () => {
+    try {
+        submitting.value = true
+
+        await updateDoc(doc(db, 'users', authStore.user.uid), {
+            nombre: editForm.value.nombre,
+            apellido: editForm.value.apellido,
+            telefono: editForm.value.telefono,
+            rut: editForm.value.rut,
+            fechaActualizacion: serverTimestamp()
+        })
+
+        alert('Información actualizada exitosamente')
+        closeEditProfile()
+        await loadUserData()
+
+    } catch (error) {
+        console.error('Error actualizando perfil:', error)
+        alert('Error al actualizar la información: ' + error.message)
+    } finally {
+        submitting.value = false
+    }
+}
+
+// Funciones para cambiar contraseña
+const openChangePassword = () => {
+    passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    }
+    showChangePasswordModal.value = true
+}
+
+const closeChangePassword = () => {
+    showChangePasswordModal.value = false
+    passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    }
+}
+
+const changePassword = async () => {
+    try {
+        if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+            alert('Las contraseñas no coinciden')
+            return
+        }
+
+        if (passwordForm.value.newPassword.length < 6) {
+            alert('La nueva contraseña debe tener al menos 6 caracteres')
+            return
+        }
+
+        submitting.value = true
+
+        // Aquí implementarías la lógica de cambio de contraseña con Firebase Auth
+        // Por ahora solo mostramos un mensaje
+        alert('Funcionalidad de cambio de contraseña en desarrollo')
+        closeChangePassword()
+
+    } catch (error) {
+        console.error('Error cambiando contraseña:', error)
+        alert('Error al cambiar la contraseña: ' + error.message)
+    } finally {
+        submitting.value = false
     }
 }
 
