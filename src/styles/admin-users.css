@@ -1,5 +1,12 @@
 /* Admin Users Management Styles */
 
+/* Contenedor principal */
+.users-list {
+    padding: 1.5rem;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Header */
 .management-header {
     display: flex;
@@ -168,25 +175,49 @@
     border: 1px solid var(--color-border);
     overflow-x: auto;
     overflow-y: visible;
-    max-width: 100%;
+    width: 100%;
     position: relative;
+    /* Mejorar scroll horizontal */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-turquesa) var(--color-surface-variant);
 }
 
-/* Indicador de scroll horizontal */
-.users-table-container::after {
-    content: "← Desliza para ver más →";
-    position: absolute;
-    bottom: 10px;
-    right: 20px;
+/* Estilos para scrollbar en webkit */
+.users-table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.users-table-container::-webkit-scrollbar-track {
+    background: var(--color-surface-variant);
+    border-radius: 4px;
+}
+
+.users-table-container::-webkit-scrollbar-thumb {
     background: var(--color-turquesa);
+    border-radius: 4px;
+}
+
+.users-table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-azul);
+}
+
+/* Indicador de scroll horizontal mejorado */
+.users-table-container::after {
+    content: "← Desliza horizontalmente para ver más columnas →";
+    position: absolute;
+    bottom: 15px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--color-turquesa), var(--color-azul));
     color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    opacity: 0.8;
+    padding: 0.5rem 1rem;
+    border-radius: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.9;
     pointer-events: none;
     z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 204, 204, 0.3);
+    animation: pulse 2s infinite;
 }
 
 /* Ocultar indicador cuando no hay scroll */
@@ -194,53 +225,75 @@
     display: none;
 }
 
+/* Animación de pulso para el indicador */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
 .users-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1200px; /* Asegurar ancho mínimo para todas las columnas */
-    table-layout: fixed; /* Controlar anchos de columnas */
+    min-width: 1400px; /* Aumentar ancho mínimo para mejor distribución */
+    table-layout: auto; /* Permitir ajuste automático de columnas */
 }
 
-/* Anchos específicos de columnas */
+/* Anchos específicos de columnas optimizados */
 .users-table th:nth-child(1), /* Usuario */
 .users-table td:nth-child(1) {
-    width: 250px;
+    width: 280px;
+    min-width: 280px;
 }
 
 .users-table th:nth-child(2), /* Comuna */
 .users-table td:nth-child(2) {
-    width: 140px;
+    width: 160px;
+    min-width: 160px;
 }
 
 .users-table th:nth-child(3), /* Edad */
 .users-table td:nth-child(3) {
-    width: 80px;
+    width: 100px;
+    min-width: 100px;
+    text-align: center;
 }
 
 .users-table th:nth-child(4), /* Plan */
 .users-table td:nth-child(4) {
-    width: 150px;
+    width: 180px;
+    min-width: 180px;
 }
 
 .users-table th:nth-child(5), /* Tarjetas */
 .users-table td:nth-child(5) {
-    width: 200px;
+    width: 280px;
+    min-width: 280px;
 }
 
 .users-table th:nth-child(6), /* Registro */
 .users-table td:nth-child(6) {
-    width: 180px;
+    width: 200px;
+    min-width: 200px;
 }
 
 .users-table th:nth-child(7), /* Estado */
 .users-table td:nth-child(7) {
-    width: 120px;
+    width: 140px;
+    min-width: 140px;
+    text-align: center;
 }
 
 .users-table th:nth-child(8), /* Acciones */
 .users-table td:nth-child(8) {
-    width: 100px;
-    min-width: 100px;
+    width: 120px;
+    min-width: 120px;
+    text-align: center;
 }
 
 .users-table th {
@@ -652,6 +705,49 @@ input:disabled + .toggle-slider {
     /* Reducir padding */
     .users-table th, .users-table td {
         padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Pantallas grandes - Optimizar uso del espacio */
+@media (min-width: 1400px) {
+    .users-table-container {
+        margin: 0 -1rem; /* Expandir hacia los lados */
+    }
+
+    .users-table {
+        min-width: 100%; /* Usar todo el ancho disponible */
+    }
+
+    /* Redistribuir anchos en pantallas grandes */
+    .users-table th:nth-child(1),
+    .users-table td:nth-child(1) {
+        width: 320px;
+    }
+
+    .users-table th:nth-child(5),
+    .users-table td:nth-child(5) {
+        width: 320px;
+    }
+
+    .users-table th:nth-child(6),
+    .users-table td:nth-child(6) {
+        width: 240px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .users-table-container {
+        margin: 0 -2rem; /* Más expansión en pantallas muy grandes */
+    }
+
+    .users-table th:nth-child(1),
+    .users-table td:nth-child(1) {
+        width: 360px;
+    }
+
+    .users-table th:nth-child(5),
+    .users-table td:nth-child(5) {
+        width: 360px;
     }
 }
 

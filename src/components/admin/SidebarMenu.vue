@@ -73,13 +73,15 @@ defineEmits(['changeView'])
 <style scoped>
 .sidebar {
     position: fixed;
-    top: 0;
+    top: 80px;
+    /* Espacio para el navbar superior */
     left: 0;
     width: 280px;
     background: var(--color-surface);
     color: var(--color-text);
-    min-height: 100vh;
-    height: 100vh;
+    min-height: calc(100vh - 80px);
+    /* Ajustar altura */
+    height: calc(100vh - 80px);
     padding: 1.5rem 0;
     border-right: 1px solid var(--color-border);
     box-shadow: var(--shadow-lg);
@@ -201,6 +203,8 @@ defineEmits(['changeView'])
 @media (max-width: 768px) {
     .sidebar {
         position: relative;
+        top: 0;
+        /* Reset top en móvil */
         width: 100%;
         height: auto;
         min-height: auto;

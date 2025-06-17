@@ -7,10 +7,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 
 // Props para recibir el mensaje, tipo y duración
-defineProps({
+const props = defineProps({
     message: {
         type: String,
         required: true,
@@ -25,41 +25,40 @@ defineProps({
     },
 });
 
+// Emits
+const emit = defineEmits(['close']);
+
 // Estado de visibilidad
 const visible = ref(true);
 
-// Clases dinámicas según el tipo de notificación
-const notificationClass = ref("");
-
-watch(
-    () => type,
-    () => {
-        switch (type) {
-            case "success":
-                notificationClass.value = "bg-green-500 text-white";
-                break;
-            case "error":
-                notificationClass.value = "bg-red-500 text-white";
-                break;
-            case "warning":
-                notificationClass.value = "bg-yellow-500 text-black";
-                break;
-            case "info":
-                notificationClass.value = "bg-blue-500 text-white";
-                break;
-            default:
-                notificationClass.value = "bg-gray-500 text-white";
-        }
-    },
-    { immediate: true }
-);
+// Clases dinámicas según el tipo de notificación usando computed
+const notificationClass = computed(() => {
+    switch (props.type) {
+        case "success":
+            return "bg-green-500 text-white";
+        case "error":
+            return "bg-red-500 text-white";
+        case "warning":
+            return "bg-yellow-500 text-black";
+        case "info":
+            return "bg-blue-500 text-white";
+        default:
+            return "bg-gray-500 text-white";
+    }
+});
 
 // Ocultar la notificación después de la duración especificada
+onMounted(() => {
+    setTimeout(() => {
+        visible.value = false;
+        emit('close');
+    }, props.duration);
+});
+
+// Watch para cerrar cuando visible cambia
 watch(visible, (newVal) => {
-    if (newVal) {
-        setTimeout(() => {
-            visible.value = false;
-        }, duration);
+    if (!newVal) {
+        emit('close');
     }
 });
 </script>

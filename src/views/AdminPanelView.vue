@@ -98,8 +98,11 @@ const showNotification = (type, message) => {
     flex-direction: column;
     overflow: hidden;
     margin-left: 280px;
+    margin-top: 80px;
+    /* Espacio para el navbar superior */
     /* Espacio para sidebar fijo */
     width: calc(100% - 280px);
+    min-height: calc(100vh - 80px);
 }
 
 /* Animación de entrada */
@@ -115,6 +118,7 @@ const showNotification = (type, message) => {
 
     .main-content {
         margin-left: 0;
+        margin-top: 0;
         width: 100%;
     }
 }
@@ -122,6 +126,7 @@ const showNotification = (type, message) => {
 @media (min-width: 769px) and (max-width: 1024px) {
     .main-content {
         margin-left: 260px;
+        margin-top: 80px;
         width: calc(100% - 260px);
     }
 }
@@ -129,6 +134,7 @@ const showNotification = (type, message) => {
 @media (min-width: 1025px) {
     .main-content {
         margin-left: 280px;
+        margin-top: 80px;
         width: calc(100% - 280px);
     }
 }

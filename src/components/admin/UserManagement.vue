@@ -45,20 +45,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Comuna</label>
-                        <input v-model="form.comuna" type="text" class="input" placeholder="Comuna de residencia">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Región *</label>
-                        <input v-model="form.region" type="text" class="input" required placeholder="Región">
-                    </div>
-
-                    <div class="form-group">
                         <label>Teléfono</label>
                         <input v-model="form.telefono" type="tel" class="input" placeholder="+56912345678">
                     </div>
+                </div>
 
+                <!-- Información Geográfica y Demográfica -->
+                <div class="geo-section">
+                    <h4>🌍 Información Geográfica y Demográfica</h4>
+                    <GeoSelector v-model="geoData" @change="onGeoDataChange" :required="true" ref="geoSelector" />
+                </div>
+
+                <div class="form-grid">
                     <div class="form-group full-width">
                         <label>Empresa</label>
                         <input v-model="form.empresa" type="text" class="input" placeholder="Empresa o organización">
@@ -129,9 +127,20 @@ import { auth, db } from '@/firebase'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/store/auth'
+import GeoSelector from '@/components/forms/GeoSelector.vue'
 
 const authStore = useAuthStore()
 const submitting = ref(false)
+const geoSelector = ref(null)
+
+// Datos geográficos
+const geoData = ref({
+    country: '',
+    region: '',
+    province: '',
+    commune: '',
+    gender: ''
+})
 
 // Computed para fecha de vencimiento Premium
 const fechaVencimientoPremium = computed(() => {
@@ -151,12 +160,15 @@ const form = ref({
     nombre: '',
     apellido: '',
     fechaNacimiento: '',
-    comuna: '',
-    region: '',
     telefono: '',
     empresa: '',
     esPremium: false
 })
+
+// Manejar cambios en datos geográficos
+const onGeoDataChange = (data) => {
+    console.log('📍 Datos geográficos actualizados:', data)
+}
 
 const limpiarFormulario = () => {
     form.value = {
@@ -166,11 +178,17 @@ const limpiarFormulario = () => {
         nombre: '',
         apellido: '',
         fechaNacimiento: '',
-        comuna: '',
-        region: '',
         telefono: '',
         empresa: '',
         esPremium: false
+    }
+
+    geoData.value = {
+        country: '',
+        region: '',
+        province: '',
+        commune: '',
+        gender: ''
     }
 }
 
@@ -193,6 +211,13 @@ const generatePublicToken = () => {
 const registrarUsuario = async () => {
     try {
         submitting.value = true
+
+        // Validar datos geográficos
+        if (geoSelector.value && !geoSelector.value.validateAll()) {
+            alert('Por favor completa todos los campos geográficos obligatorios')
+            return
+        }
+
         console.log('Intentando registrar usuario:', form.value.email)
 
         // Crear usuario en Firebase Auth
@@ -217,10 +242,15 @@ const registrarUsuario = async () => {
             apellido: form.value.apellido,
             telefono: form.value.telefono,
             fechaNacimiento: form.value.fechaNacimiento ? new Date(form.value.fechaNacimiento) : null,
-            comuna: form.value.comuna,
-            region: form.value.region,
             empresa: form.value.empresa,
             rol: 'usuario', // Campo único para roles
+
+            // Información geográfica y demográfica
+            pais: geoData.value.country,
+            region: geoData.value.region,
+            provincia: geoData.value.province,
+            comuna: geoData.value.commune,
+            sexo: geoData.value.gender,
 
             // Token público único para QR
             tokenPublico: tokenPublico,
@@ -337,6 +367,25 @@ const registrarUsuario = async () => {
     font-weight: 500;
     font-size: 0.95rem;
     font-family: var(--font-secondary);
+}
+
+/* Geo Section */
+.geo-section {
+    background: linear-gradient(135deg, rgba(0, 204, 204, 0.05), rgba(28, 148, 224, 0.05));
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.geo-section h4 {
+    margin: 0 0 1.5rem 0;
+    color: var(--color-text);
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 /* Premium Section */
