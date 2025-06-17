@@ -14,6 +14,19 @@
             <p>Por favor, verifica el enlace o contacta al propietario.</p>
         </div>
 
+        <!-- Info State - Acceso directo sin token -->
+        <div v-else-if="!userInfo && !loading && !error" class="info-container">
+            <div class="info-icon">ℹ️</div>
+            <h2>Página de Transferencias</h2>
+            <p>Esta es una página pública para recibir datos de transferencia.</p>
+            <p>Para acceder a los datos de un usuario específico, necesitas un enlace válido o código QR.</p>
+            <div class="info-actions">
+                <router-link to="/" class="btn btn-primary">
+                    🏠 Ir al Inicio
+                </router-link>
+            </div>
+        </div>
+
         <!-- Success State -->
         <div v-else-if="userInfo && tarjetas.length > 0" class="transfer-content">
             <!-- Header del usuario -->
@@ -165,18 +178,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { db } from '@/firebase'
 import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore'
 import { incrementTransferCounter } from '@/store/transferCounter'
 
 const route = useRoute()
+const router = useRouter()
 const loading = ref(true)
 const error = ref(false)
 const userInfo = ref(null)
 const tarjetas = ref([])
 const selectedCard = ref(null)
+const tokenCaptured = ref(false) // Para evitar loops
 
 // Computed
 const tarjetasActivas = computed(() => {
@@ -189,15 +204,38 @@ const loadUserData = async () => {
         loading.value = true
         error.value = false
 
-        // Obtener identificador desde la URL (parámetro o query)
-        const userId = route.params.id || route.query.id || route.query.tkn
+        // Obtener identificador desde la URL (parámetro o query) o sessionStorage
+        let userId = route.params.id || route.query.id || route.query.tkn
+
+        // Si no hay token en la URL, intentar recuperar de sessionStorage
+        if (!userId) {
+            userId = sessionStorage.getItem('deuna_transfer_token')
+        }
 
         if (!userId) {
-            error.value = true
+            // No hay token disponible, mostrar página de información
+            loading.value = false
             return
         }
 
         console.log('🔍 Buscando usuario con ID:', userId)
+
+        // 🎯 REEMPLAZO DE HISTORIAL: Limpiar URL después de capturar el token
+        if (!tokenCaptured.value && (route.params.id || route.query.id || route.query.tkn)) {
+            tokenCaptured.value = true
+
+            // Guardar token en sessionStorage para recargas de página
+            sessionStorage.setItem('deuna_transfer_token', userId)
+
+            // Reemplazar la URL actual con la versión limpia
+            router.replace({
+                path: '/datostransferencia',
+                query: {} // Limpiar todos los query parameters
+            })
+
+            console.log('🔄 URL limpiada a: /datostransferencia')
+            console.log('💾 Token guardado en sessionStorage')
+        }
 
         // Buscar usuario por token público, RUT o UID
         let usersQuery
@@ -404,8 +442,21 @@ const showCopyFeedback = () => {
     }, 2000)
 }
 
+// Limpiar sessionStorage al salir de la página (opcional para seguridad)
+const cleanupOnExit = () => {
+    sessionStorage.removeItem('deuna_transfer_token')
+}
+
 onMounted(() => {
     loadUserData()
+
+    // Limpiar token al cerrar/recargar la página (opcional)
+    window.addEventListener('beforeunload', cleanupOnExit)
+})
+
+// Cleanup al desmontar el componente
+onUnmounted(() => {
+    window.removeEventListener('beforeunload', cleanupOnExit)
 })
 </script>
 
@@ -449,11 +500,54 @@ onMounted(() => {
     margin: 0;
 }
 
-.loading-state,
-.error-state {
+.loading-container,
+.error-container,
+.info-container {
     text-align: center;
     padding: 3rem 2rem;
     animation: fadeIn var(--duration-normal) var(--easing-default);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.info-container {
+    background: var(--color-surface);
+    border-radius: 1rem;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+}
+
+.info-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--color-turquesa);
+}
+
+.info-actions {
+    margin-top: 2rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all var(--duration-normal) var(--easing-default);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-turquesa), var(--color-azul));
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .spinner {
