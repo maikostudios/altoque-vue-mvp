@@ -189,25 +189,46 @@ const loadUserData = async () => {
         loading.value = true
         error.value = false
 
-        const token = route.query.tkn
+        // Obtener identificador desde la URL (parámetro o query)
+        const userId = route.params.id || route.query.id || route.query.tkn
 
-        if (!token) {
+        if (!userId) {
             error.value = true
             return
         }
 
-        console.log('🔍 Buscando usuario con token:', token)
+        console.log('🔍 Buscando usuario con ID:', userId)
 
-        // Buscar usuario por token público
-        const usersQuery = query(
-            collection(db, 'users'),
-            where('tokenPublico', '==', token)
-        )
+        // Buscar usuario por token público, RUT o UID
+        let usersQuery
+
+        // Si parece ser un UID de Firebase (28 caracteres alfanuméricos)
+        if (userId.length === 28 && /^[a-zA-Z0-9]+$/.test(userId)) {
+            usersQuery = query(
+                collection(db, 'users'),
+                where('tokenPublico', '==', userId)
+            )
+        }
+        // Si parece ser un RUT (formato chileno)
+        else if (/^\d{7,8}[-kK\d]?$/.test(userId.replace(/[.\-]/g, ''))) {
+            const cleanRut = userId.replace(/[.\-]/g, '').toLowerCase()
+            usersQuery = query(
+                collection(db, 'users'),
+                where('rut', '==', cleanRut)
+            )
+        }
+        // Buscar por token público como fallback
+        else {
+            usersQuery = query(
+                collection(db, 'users'),
+                where('tokenPublico', '==', userId)
+            )
+        }
 
         const usersSnapshot = await getDocs(usersQuery)
 
         if (usersSnapshot.empty) {
-            console.log('❌ No se encontró usuario con el token')
+            console.log('❌ No se encontró usuario con el ID:', userId)
             error.value = true
             return
         }

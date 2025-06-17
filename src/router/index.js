@@ -38,8 +38,14 @@ const routes = [
     meta: { requiresAuth: true, role: "usuario" },
   },
   {
-    path: "/linktransferencia",
-    name: "LinkTransferencia",
+    path: "/datostransferencia",
+    name: "DatosTransferencia",
+    component: () => import("../views/PublicTransferView.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
+    path: "/datostransferencia/:id",
+    name: "DatosTransferenciaConId",
     component: () => import("../views/PublicTransferView.vue"),
     meta: { requiresAuth: false },
   },

@@ -149,9 +149,14 @@
                             <span :class="['status-badge', tarjeta.activa ? 'active' : 'inactive']">
                                 {{ tarjeta.activa ? 'Activa' : 'Inactiva' }}
                             </span>
-                            <button @click="copiarEnlace" class="btn btn-ghost btn-sm">
-                                🔗 Copiar Enlace Público
-                            </button>
+                            <div class="tarjeta-actions">
+                                <button @click="copiarEnlace" class="btn btn-ghost btn-sm">
+                                    🔗 Copiar Enlace
+                                </button>
+                                <button @click="mostrarQR" class="btn btn-primary btn-sm">
+                                    📱 Ver QR
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -266,8 +271,11 @@
                         <div class="config-content">
                             <p><strong>Nombre:</strong> {{ userInfo.nombre }} {{ userInfo.apellido }}</p>
                             <p><strong>Email:</strong> {{ userInfo.email }}</p>
-                            <p><strong>RUT:</strong> {{ userInfo.rut }}</p>
-                            <p><strong>Teléfono:</strong> {{ userInfo.telefono }}</p>
+                            <p><strong>RUT:</strong> {{ userInfo.rut || 'No especificado' }}</p>
+                            <p><strong>Teléfono:</strong> {{ userInfo.telefono || 'No especificado' }}</p>
+                            <p v-if="userInfo.comunaNombre"><strong>Ubicación:</strong> {{ userInfo.comunaNombre }}, {{
+                                userInfo.regionNombre }}</p>
+                            <p v-if="userInfo.sexo"><strong>Sexo:</strong> {{ userInfo.sexo }}</p>
                             <button @click="openEditProfile" class="btn btn-secondary btn-sm">Editar
                                 Información</button>
                         </div>
@@ -374,15 +382,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="rut">RUT</label>
-                        <input id="rut" v-model="editForm.rut" type="text" class="form-input"
-                            placeholder="12.345.678-9">
-                    </div>
-
-                    <div class="form-group">
                         <label for="telefono">Teléfono</label>
                         <input id="telefono" v-model="editForm.telefono" type="tel" class="form-input"
                             placeholder="+56 9 1234 5678">
+                    </div>
+
+                    <!-- Información Geográfica -->
+                    <div class="form-group">
+                        <label class="form-label">📍 Ubicación Geográfica</label>
+                        <GeoSelector v-model="geoData" @change="onGeoDataChange" :required="false" />
                     </div>
 
                     <div class="modal-actions">
@@ -445,6 +453,7 @@ import { db } from '@/firebase'
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import BankCardForm from '@/components/user/BankCardForm.vue'
 import QRModal from '@/components/user/QRModal.vue'
+import GeoSelector from '@/components/forms/GeoSelector.vue'
 import { incrementTransferCounter } from '@/store/transferCounter'
 
 const authStore = useAuthStore()
@@ -495,8 +504,16 @@ const configuraciones = ref({
 const editForm = ref({
     nombre: '',
     apellido: '',
-    telefono: '',
-    rut: ''
+    telefono: ''
+})
+
+// Datos geográficos para edición
+const geoData = ref({
+    country: '',
+    region: '',
+    province: '',
+    commune: '',
+    gender: ''
 })
 
 // Formulario de cambio de contraseña
@@ -687,11 +704,16 @@ const eliminarTarjeta = async (tarjeta) => {
 }
 
 const copiarEnlace = () => {
-    const enlace = `${window.location.origin}/linktransferencia?tkn=${userInfo.value.tokenPublico}`
+    // Usar la nueva URL SEO-friendly
+    const enlace = `${window.location.origin}/datostransferencia/${userInfo.value.tokenPublico}`
     navigator.clipboard.writeText(enlace)
     alert('Enlace público copiado al portapapeles')
     // Incrementar contador global de transferencias
     incrementTransferCounter()
+}
+
+const mostrarQR = () => {
+    showQRModal.value = true
 }
 
 const guardarTarjeta = async (formData) => {
@@ -793,16 +815,98 @@ const guardarConfiguraciones = async () => {
     }
 }
 
+// Funciones auxiliares para obtener nombres geográficos
+const getRegionName = (regionCode) => {
+    const regions = {
+        '1': 'Tarapacá',
+        '2': 'Antofagasta',
+        '3': 'Atacama',
+        '4': 'Coquimbo',
+        '5': 'Valparaíso',
+        '6': 'Libertador General Bernardo O\'Higgins',
+        '7': 'Maule',
+        '8': 'Biobío',
+        '9': 'La Araucanía',
+        '10': 'Los Lagos',
+        '11': 'Aysén del General Carlos Ibáñez del Campo',
+        '12': 'Magallanes y de la Antártica Chilena',
+        '13': 'Metropolitana de Santiago',
+        '14': 'Los Ríos',
+        '15': 'Arica y Parinacota',
+        '16': 'Ñuble'
+    }
+    return regions[regionCode] || ''
+}
+
+const getProvinceName = (provinceCode) => {
+    const provinces = {
+        '131': 'Santiago', '132': 'Cordillera', '133': 'Chacabuco', '134': 'Maipo', '135': 'Melipilla', '136': 'Talagante',
+        '51': 'Valparaíso', '52': 'Isla de Pascua', '53': 'Los Andes', '54': 'Petorca', '55': 'Quillota', '56': 'San Antonio', '57': 'San Felipe de Aconcagua', '58': 'Marga Marga',
+        '81': 'Concepción', '82': 'Arauco', '83': 'Biobío',
+        '91': 'Cautín', '92': 'Malleco',
+        '41': 'Elqui', '42': 'Choapa', '43': 'Limarí',
+        '21': 'Antofagasta', '22': 'El Loa', '23': 'Tocopilla',
+        '101': 'Llanquihue', '102': 'Chiloé', '103': 'Osorno', '104': 'Palena',
+        '11': 'Iquique', '14': 'Tamarugal',
+        '151': 'Arica', '152': 'Parinacota'
+    }
+    return provinces[provinceCode] || ''
+}
+
+const getCommuneName = (communeCode) => {
+    const communes = {
+        // Santiago
+        '13101': 'Santiago', '13102': 'Cerrillos', '13103': 'Cerro Navia', '13104': 'Conchalí', '13105': 'El Bosque',
+        '13106': 'Estación Central', '13107': 'Huechuraba', '13108': 'Independencia', '13109': 'La Cisterna', '13110': 'La Florida',
+        '13111': 'La Granja', '13112': 'La Pintana', '13113': 'La Reina', '13114': 'Las Condes', '13115': 'Lo Barnechea',
+        '13116': 'Lo Espejo', '13117': 'Lo Prado', '13118': 'Macul', '13119': 'Maipú', '13120': 'Ñuñoa',
+        '13121': 'Pedro Aguirre Cerda', '13122': 'Peñalolén', '13123': 'Providencia', '13124': 'Pudahuel', '13125': 'Quilicura',
+        '13126': 'Quinta Normal', '13127': 'Recoleta', '13128': 'Renca', '13129': 'San Joaquín', '13130': 'San Miguel',
+        '13131': 'San Ramón', '13132': 'Vitacura',
+        // Valparaíso
+        '5101': 'Valparaíso', '5102': 'Casablanca', '5103': 'Concón', '5104': 'Juan Fernández', '5105': 'Puchuncaví', '5106': 'Quintero', '5107': 'Viña del Mar',
+        // Concepción
+        '8101': 'Concepción', '8102': 'Coronel', '8103': 'Chiguayante', '8104': 'Florida', '8105': 'Hualqui', '8106': 'Lota',
+        '8107': 'Penco', '8108': 'San Pedro de la Paz', '8109': 'Santa Juana', '8110': 'Talcahuano', '8111': 'Tomé', '8112': 'Hualpén',
+        // Cautín
+        '9101': 'Temuco', '9102': 'Carahue', '9103': 'Cunco', '9104': 'Curarrehue', '9105': 'Freire', '9106': 'Galvarino',
+        '9107': 'Gorbea', '9108': 'Lautaro', '9109': 'Loncoche', '9110': 'Melipeuco', '9111': 'Nueva Imperial', '9112': 'Padre las Casas',
+        '9113': 'Perquenco', '9114': 'Pitrufquén', '9115': 'Pucón', '9116': 'Saavedra', '9117': 'Teodoro Schmidt', '9118': 'Toltén',
+        '9119': 'Vilcún', '9120': 'Villarrica',
+        // Elqui
+        '4101': 'La Serena', '4102': 'Coquimbo', '4103': 'Andacollo', '4104': 'La Higuera', '4105': 'Paiguano', '4106': 'Vicuña',
+        // Antofagasta
+        '2101': 'Antofagasta', '2102': 'Mejillones', '2103': 'Sierra Gorda', '2104': 'Taltal',
+        // Otras
+        '10101': 'Puerto Montt', '10301': 'Osorno', '1101': 'Iquique', '15101': 'Arica'
+    }
+    return communes[communeCode] || ''
+}
+
 // Funciones para editar perfil
 const openEditProfile = () => {
     // Cargar datos actuales en el formulario
     editForm.value = {
         nombre: userInfo.value.nombre || '',
         apellido: userInfo.value.apellido || '',
-        telefono: userInfo.value.telefono || '',
-        rut: userInfo.value.rut || ''
+        telefono: userInfo.value.telefono || ''
     }
+
+    // Cargar datos geográficos actuales
+    geoData.value = {
+        country: userInfo.value.pais || 'CL',
+        region: userInfo.value.region || '',
+        province: userInfo.value.provincia || '',
+        commune: userInfo.value.comuna || '',
+        gender: userInfo.value.sexo || ''
+    }
+
     showEditProfileModal.value = true
+}
+
+// Función para manejar cambios en el GeoSelector
+const onGeoDataChange = (newGeoData) => {
+    geoData.value = { ...newGeoData }
 }
 
 const closeEditProfile = () => {
@@ -810,8 +914,14 @@ const closeEditProfile = () => {
     editForm.value = {
         nombre: '',
         apellido: '',
-        telefono: '',
-        rut: ''
+        telefono: ''
+    }
+    geoData.value = {
+        country: '',
+        region: '',
+        province: '',
+        commune: '',
+        gender: ''
     }
 }
 
@@ -819,13 +929,41 @@ const saveProfile = async () => {
     try {
         submitting.value = true
 
-        await updateDoc(doc(db, 'users', authStore.user.uid), {
+        // Preparar datos para actualizar
+        const updateData = {
             nombre: editForm.value.nombre,
             apellido: editForm.value.apellido,
             telefono: editForm.value.telefono,
-            rut: editForm.value.rut,
             fechaActualizacion: serverTimestamp()
-        })
+        }
+
+        // Agregar datos geográficos si están completos
+        if (geoData.value.country) {
+            updateData.pais = geoData.value.country
+        }
+        if (geoData.value.region) {
+            updateData.region = geoData.value.region
+            // Buscar nombre de la región
+            const regionName = getRegionName(geoData.value.region)
+            if (regionName) updateData.regionNombre = regionName
+        }
+        if (geoData.value.province) {
+            updateData.provincia = geoData.value.province
+            // Buscar nombre de la provincia
+            const provinceName = getProvinceName(geoData.value.province)
+            if (provinceName) updateData.provinciaNombre = provinceName
+        }
+        if (geoData.value.commune) {
+            updateData.comuna = geoData.value.commune
+            // Buscar nombre de la comuna
+            const communeName = getCommuneName(geoData.value.commune)
+            if (communeName) updateData.comunaNombre = communeName
+        }
+        if (geoData.value.gender) {
+            updateData.sexo = geoData.value.gender
+        }
+
+        await updateDoc(doc(db, 'users', authStore.user.uid), updateData)
 
         alert('Información actualizada exitosamente')
         closeEditProfile()

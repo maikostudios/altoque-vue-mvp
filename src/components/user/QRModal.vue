@@ -30,15 +30,17 @@
 
                 <div class="card-preview">
                     <h4>Vista Previa Pública</h4>
-                    <div class="preview-card" :style="{ background: getCardGradient() }">
+                    <div class="preview-card" :style="{ background: getDefaultGradient() }">
                         <div class="preview-header">
-                            <h3>{{ userInfo.nombre }} {{ userInfo.apellido }}</h3>
-                            <div class="preview-bank">{{ userInfo.empresa || 'Transferencias' }}</div>
+                            <h3>{{ props.userInfo.nombre }} {{ props.userInfo.apellido }}</h3>
+                            <div class="preview-bank">{{ props.userInfo.empresa || 'De Una Transferencias' }}</div>
                         </div>
                         <div class="preview-info">
-                            <p><strong>Plan:</strong> {{ userInfo.tipoPlan || 'Gratuito' }}</p>
-                            <p><strong>Email:</strong> {{ userInfo.email }}</p>
-                            <p><strong>Teléfono:</strong> {{ userInfo.telefono || 'No especificado' }}</p>
+                            <p><strong>Plan:</strong> {{ props.userInfo.tipoPlan || 'Gratuito' }}</p>
+                            <p><strong>Email:</strong> {{ props.userInfo.email }}</p>
+                            <p><strong>Teléfono:</strong> {{ props.userInfo.telefono || 'No especificado' }}</p>
+                            <p v-if="props.userInfo.comunaNombre"><strong>Ubicación:</strong> {{
+                                props.userInfo.comunaNombre }}, {{ props.userInfo.regionNombre }}</p>
                         </div>
                         <div class="preview-footer">
                             <span class="preview-qr">📱 Escanea para ver tarjetas</span>
@@ -113,7 +115,8 @@ const qrCodeElement = ref(null)
 
 // Computed
 const qrUrl = computed(() => {
-    return `${window.location.origin}/linktransferencia?tkn=${props.userInfo.tokenPublico}`
+    // Usar la nueva URL SEO-friendly
+    return `${window.location.origin}/datostransferencia/${props.userInfo.tokenPublico}`
 })
 
 const canShare = computed(() => {
@@ -136,22 +139,9 @@ const generateQR = async () => {
     }
 }
 
-const getCardGradient = () => {
-    const colorMap = {
-        'turquesa': 'linear-gradient(135deg, #00cccc, #1c94e0)',
-        'azul': 'linear-gradient(135deg, #1c94e0, #0066cc)',
-        'verde': 'linear-gradient(135deg, #28a745, #20c997)',
-        'morado': 'linear-gradient(135deg, #6f42c1, #e83e8c)',
-        'naranja': 'linear-gradient(135deg, #fd7e14, #ffc107)',
-        'rojo': 'linear-gradient(135deg, #dc3545, #fd7e14)'
-    }
-    return colorMap[props.tarjeta.colorTema] || colorMap.turquesa
-}
-
-const formatAccountNumber = (account) => {
-    if (!account) return '••••••••'
-    if (account.length <= 4) return account
-    return '••••' + account.slice(-4)
+const getDefaultGradient = () => {
+    // Usar el gradiente por defecto del tema
+    return 'linear-gradient(135deg, #00cccc, #1c94e0)'
 }
 
 const formatDate = (date) => {
