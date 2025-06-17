@@ -32,7 +32,19 @@
                 <li>
                     <button @click="$emit('changeView', 'soporte')" class="nav-item"
                         :class="{ active: currentView === 'soporte' }">
-                        🎧 Agentes Soporte
+                        🎧 Crear Agente Soporte
+                    </button>
+                </li>
+                <li>
+                    <button @click="$emit('changeView', 'lista-soporte')" class="nav-item"
+                        :class="{ active: currentView === 'lista-soporte' }">
+                        📋 Lista Agentes Soporte
+                    </button>
+                </li>
+                <li>
+                    <button @click="$emit('changeView', 'gestion-tickets')" class="nav-item"
+                        :class="{ active: currentView === 'gestion-tickets' }">
+                        🎫 Gestión de Tickets
                     </button>
                 </li>
                 <li>
