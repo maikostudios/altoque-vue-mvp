@@ -13,20 +13,22 @@
           <label for="asunto" class="form-label">
             Asunto *
           </label>
-          <select 
-            id="asunto" 
-            v-model="form.asunto" 
-            class="form-select"
-            required
-          >
+          <select id="asunto" v-model="form.asunto" class="form-select" required>
             <option value="">Selecciona un asunto</option>
-            <option 
-              v-for="subject in ticketSubjects" 
-              :key="subject.value" 
-              :value="subject.value"
-            >
+            <option v-for="subject in ticketSubjects" :key="subject.value" :value="subject.value">
               {{ subject.label }}
             </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="prioridad" class="form-label">
+            Prioridad
+          </label>
+          <select id="prioridad" v-model="form.prioridad" class="form-select">
+            <option value="baja">🟢 Baja - No es urgente</option>
+            <option value="media">🟡 Media - Necesito ayuda pronto</option>
+            <option value="alta">🔴 Alta - Es urgente</option>
           </select>
         </div>
 
@@ -34,15 +36,9 @@
           <label for="mensaje" class="form-label">
             Describe tu problema *
           </label>
-          <textarea 
-            id="mensaje"
-            v-model="form.mensaje"
-            class="form-textarea"
-            rows="6"
-            placeholder="Describe detalladamente tu problema para que podamos ayudarte mejor..."
-            required
-            maxlength="1000"
-          ></textarea>
+          <textarea id="mensaje" v-model="form.mensaje" class="form-textarea" rows="6"
+            placeholder="Describe detalladamente tu problema para que podamos ayudarte mejor..." required
+            maxlength="1000"></textarea>
           <div class="character-count">
             {{ form.mensaje.length }}/1000 caracteres
           </div>
@@ -75,19 +71,10 @@
 
         <!-- Botones -->
         <div class="modal-actions">
-          <button 
-            type="button" 
-            @click="closeModal" 
-            class="btn btn-ghost"
-            :disabled="submitting"
-          >
+          <button type="button" @click="closeModal" class="btn btn-ghost" :disabled="submitting">
             Cancelar
           </button>
-          <button 
-            type="submit" 
-            class="btn btn-primary"
-            :disabled="submitting || !isFormValid"
-          >
+          <button type="submit" class="btn btn-primary" :disabled="submitting || !isFormValid">
             <span v-if="submitting">
               <i class="bi bi-arrow-clockwise spin"></i>
               Enviando...
@@ -115,6 +102,7 @@ const authStore = useAuthStore()
 
 const form = ref({
   asunto: '',
+  prioridad: 'media',
   mensaje: ''
 })
 
@@ -132,9 +120,9 @@ const props = defineProps({
 
 // Computed
 const isFormValid = computed(() => {
-  return form.value.asunto && 
-         form.value.mensaje.trim().length >= 10 && 
-         form.value.mensaje.length <= 1000
+  return form.value.asunto &&
+    form.value.mensaje.trim().length >= 10 &&
+    form.value.mensaje.length <= 1000
 })
 
 // Methods
@@ -156,6 +144,7 @@ const submitTicket = async () => {
       userEmail: authStore.user.email,
       userName: `${props.userInfo.nombre || ''} ${props.userInfo.apellido || ''}`.trim(),
       asunto: form.value.asunto,
+      prioridad: form.value.prioridad,
       mensaje: form.value.mensaje.trim()
     }
 
@@ -167,13 +156,14 @@ const submitTicket = async () => {
         ticketId: result.ticketId,
         message: `Ticket #${result.ticketId} creado exitosamente`
       })
-      
+
       // Limpiar formulario
       form.value = {
         asunto: '',
+        prioridad: 'media',
         mensaje: ''
       }
-      
+
       closeModal()
     } else {
       error.value = result.error || 'Error al crear el ticket'
@@ -257,7 +247,8 @@ const submitTicket = async () => {
   font-size: 0.9rem;
 }
 
-.form-select, .form-textarea {
+.form-select,
+.form-textarea {
   width: 100%;
   padding: 12px 16px;
   background: #2a2a2a;
@@ -268,7 +259,8 @@ const submitTicket = async () => {
   transition: all 0.3s ease;
 }
 
-.form-select:focus, .form-textarea:focus {
+.form-select:focus,
+.form-textarea:focus {
   outline: none;
   border-color: #00cccc;
   box-shadow: 0 0 0 3px rgba(0, 204, 204, 0.1);
@@ -390,8 +382,13 @@ const submitTicket = async () => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Mobile responsive */
@@ -400,23 +397,23 @@ const submitTicket = async () => {
     margin: 10px;
     max-height: calc(100vh - 20px);
   }
-  
+
   .modal-header {
     padding: 20px 20px 0;
   }
-  
+
   .ticket-form {
     padding: 20px;
   }
-  
+
   .info-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-actions {
     flex-direction: column-reverse;
   }
-  
+
   .btn {
     width: 100%;
     justify-content: center;

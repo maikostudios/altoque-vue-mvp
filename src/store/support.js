@@ -16,6 +16,7 @@ import { useNotificationsStore } from "./notifications";
 export const useSupportStore = defineStore("support", {
   state: () => ({
     tickets: [],
+    allTickets: [], // Para el panel de soporte
     loading: false,
     submitting: false,
     error: null,
@@ -92,15 +93,21 @@ export const useSupportStore = defineStore("support", {
           asunto: ticketData.asunto,
           mensaje: ticketData.mensaje,
           estado: "recibido",
-          prioridad: "normal",
+          prioridad: ticketData.prioridad || "media", // Alta, Media, Baja
           fechaCreacion: serverTimestamp(),
           fechaActualizacion: serverTimestamp(),
+          asignadoA: null, // UID del agente de soporte asignado
+          fechaAsignacion: null,
+          respuesta: null, // Respuesta del soporte
+          diasPendientes: 0, // Campo calculado
           historial: [
             {
-              accion: "creado",
-              descripcion: "Ticket creado por el usuario",
-              fecha: new Date(), // Usar Date() en lugar de serverTimestamp() en arrays
+              estado: "recibido",
+              usuario: ticketData.userName,
+              mensaje: `Ticket creado: ${ticketData.mensaje}`,
+              fecha: new Date(),
               autor: "usuario",
+              autorId: ticketData.userId,
             },
           ],
         };
@@ -152,9 +159,75 @@ export const useSupportStore = defineStore("support", {
       }
     },
 
+    // Cargar todos los tickets (para panel de soporte y admin)
+    async loadAllTickets() {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const q = query(
+          collection(db, "tickets"),
+          orderBy("fechaCreacion", "desc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        this.allTickets = [];
+
+        querySnapshot.forEach((doc) => {
+          this.allTickets.push({
+            id: doc.id,
+            ...doc.data(),
+          });
+        });
+      } catch (error) {
+        console.error("Error cargando todos los tickets:", error);
+        this.error = error.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Asignar ticket a un agente de soporte
+    async assignTicket(ticketId, supportUserId) {
+      try {
+        const updateData = {
+          asignadoA: supportUserId,
+          fechaAsignacion: serverTimestamp(),
+          estado: "en_proceso",
+          fechaActualizacion: serverTimestamp(),
+        };
+
+        await updateDoc(doc(db, "tickets", ticketId), updateData);
+
+        return { success: true };
+      } catch (error) {
+        console.error("Error asignando ticket:", error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    // Responder a un ticket
+    async respondToTicket(ticketId, response, supportUserId) {
+      try {
+        const updateData = {
+          respuesta: response,
+          estado: "respondido",
+          fechaActualizacion: serverTimestamp(),
+        };
+
+        await updateDoc(doc(db, "tickets", ticketId), updateData);
+
+        return { success: true };
+      } catch (error) {
+        console.error("Error respondiendo ticket:", error);
+        return { success: false, error: error.message };
+      }
+    },
+
     // Limpiar store
     clearTickets() {
       this.tickets = [];
+      this.allTickets = [];
       this.loading = false;
       this.submitting = false;
       this.error = null;
@@ -179,4 +252,18 @@ export const TICKET_STATUSES = {
   en_proceso: { label: "En proceso", color: "yellow", icon: "⚙️" },
   respondido: { label: "Respondido", color: "green", icon: "💬" },
   cerrado: { label: "Cerrado", color: "gray", icon: "✅" },
+};
+
+// Prioridades de tickets
+export const TICKET_PRIORITIES = {
+  alta: { label: "Alta", color: "red", icon: "🔴", sla: 24 }, // 24 horas
+  media: { label: "Media", color: "yellow", icon: "🟡", sla: 72 }, // 3 días
+  baja: { label: "Baja", color: "green", icon: "🟢", sla: 168 }, // 7 días
+};
+
+// Roles de soporte
+export const SUPPORT_ROLES = {
+  admin: "admin",
+  soporte: "soporte",
+  usuario: "usuario",
 };

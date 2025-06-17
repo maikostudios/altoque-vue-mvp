@@ -225,7 +225,7 @@
                                     <div class="stat-item">
                                         <span class="stat-icon">📅</span>
                                         <span class="stat-value">{{ formatDate(tarjeta.ultimaVisita) || 'Nunca'
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -251,7 +251,8 @@
                                     <div class="info-item">
                                         <label>Rol:</label>
                                         <EditableField :value="user.rol" field="rol" type="select"
-                                            :options="['usuario', 'vendedor', 'admin']" @update="updateField" />
+                                            :options="['usuario', 'vendedor', 'soporte', 'admin']"
+                                            @update="updateField" />
                                     </div>
                                     <div class="info-item">
                                         <label>Estado:</label>

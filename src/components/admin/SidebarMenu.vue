@@ -30,6 +30,12 @@
                     </button>
                 </li>
                 <li>
+                    <button @click="$emit('changeView', 'soporte')" class="nav-item"
+                        :class="{ active: currentView === 'soporte' }">
+                        🎧 Agentes Soporte
+                    </button>
+                </li>
+                <li>
                     <button @click="$emit('changeView', 'tarjetas')" class="nav-item"
                         :class="{ active: currentView === 'tarjetas' }">
                         💳 Cuentas Bancarias

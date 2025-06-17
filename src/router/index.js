@@ -67,6 +67,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: "/support-dashboard",
+    name: "SupportDashboard",
+    component: () => import("../views/SupportDashboardView.vue"),
+    meta: { requiresAuth: true, requiresRole: "soporte" },
+  },
+  {
     path: "/:pathMatch(.*)*",
     name: "NotFound",
     component: () => import("../views/NotFoundView.vue"),
@@ -123,6 +129,10 @@ router.beforeEach(async (to, from, next) => {
       console.log("Redirigiendo admin a /admin");
       return next("/admin");
     }
+    if (authStore.role === "soporte") {
+      console.log("Redirigiendo soporte a /support-dashboard");
+      return next("/support-dashboard");
+    }
     if (authStore.role === "vendedor") {
       console.log("Redirigiendo vendedor a /vendedor");
       return next("/vendedor");
@@ -141,8 +151,32 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Verificar si la ruta requiere un rol específico
+  if (to.meta.requiresRole) {
+    const requiredRole = to.meta.requiresRole;
+    const userRole = authStore.role;
+
+    // Admin puede acceder a todo, otros roles solo a su área específica
+    const hasAccess = userRole === "admin" || userRole === requiredRole;
+
+    if (!hasAccess) {
+      console.log(
+        `Acceso denegado. Rol requerido: ${requiredRole}, rol actual: ${userRole}`
+      );
+
+      // Redirigir según el rol del usuario
+      if (userRole === "soporte") {
+        return next("/support-dashboard");
+      } else if (userRole === "vendedor") {
+        return next("/vendedor");
+      } else {
+        return next("/usuario");
+      }
+    }
+  }
+
+  // Verificar si la ruta requiere un rol específico (legacy)
   if (to.meta.role && authStore.role !== to.meta.role) {
-    return next("/dashboard"); // Redirigir a una página por defecto si no tiene el rol adecuado
+    return next("/dashboard");
   }
 
   next();

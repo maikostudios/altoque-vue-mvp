@@ -545,6 +545,7 @@ const getRoleLabel = (role) => {
     const labels = {
         'admin': '👑 Admin',
         'vendedor': '🏪 Vendedor',
+        'soporte': '🎧 Soporte',
         'usuario': '👤 Usuario'
     }
     return labels[role] || '❓ Sin rol'

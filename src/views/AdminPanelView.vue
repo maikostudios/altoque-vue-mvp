@@ -29,6 +29,7 @@ import DashboardStats from '@/components/admin/DashboardStats.vue'
 import UserManagement from '@/components/admin/UserManagement.vue'
 import UsersList from '@/components/admin/UsersList.vue'
 import SellerManagement from '@/components/admin/SellerManagement.vue'
+import SupportManagement from '@/components/admin/SupportManagement.vue'
 import BankAccountsManagement from '@/components/admin/BankAccountsManagement.vue'
 import DemographicsData from '@/components/admin/DemographicsData.vue'
 import StatisticsGraphs from '@/components/admin/StatisticsGraphs.vue'
@@ -42,6 +43,7 @@ const viewsMap = {
     usuarios: UserManagement,
     lista: UsersList,
     vendedores: SellerManagement,
+    soporte: SupportManagement,
     tarjetas: BankAccountsManagement,
     datos: DemographicsData,
     estadisticas: StatisticsGraphs,

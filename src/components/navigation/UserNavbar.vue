@@ -14,7 +14,7 @@
           <i class="bi bi-house"></i>
           Home
         </router-link>
-        
+
         <!-- Mostrar solo en rutas de usuario -->
         <template v-if="isUserRoute">
           <router-link to="/ayuda" class="nav-link">
@@ -22,37 +22,30 @@
             Ayuda
           </router-link>
         </template>
-        
+
         <!-- Links para admin -->
-        <router-link 
-          v-if="authStore.role === 'admin'" 
-          to="/admin" 
-          class="nav-link"
-        >
+        <router-link v-if="authStore.role === 'admin'" to="/admin" class="nav-link">
           <i class="bi bi-gear"></i>
           Admin Panel
         </router-link>
-        
+
         <!-- Links para vendedor -->
-        <router-link 
-          v-if="authStore.role === 'vendedor'" 
-          to="/vendedor" 
-          class="nav-link"
-        >
+        <router-link v-if="authStore.role === 'vendedor'" to="/vendedor" class="nav-link">
           <i class="bi bi-shop"></i>
           Vendedor
+        </router-link>
+
+        <!-- Links para soporte -->
+        <router-link v-if="authStore.role === 'soporte'" to="/support-dashboard" class="nav-link">
+          <i class="bi bi-headset"></i>
+          Panel Soporte
         </router-link>
       </div>
 
       <!-- User Actions -->
       <div class="navbar-actions">
         <!-- Soporte (solo en rutas de usuario) -->
-        <router-link 
-          v-if="isUserRoute" 
-          to="/soporte" 
-          class="support-btn"
-          title="Contactar soporte"
-        >
+        <router-link v-if="isUserRoute" to="/soporte" class="support-btn" title="Contactar soporte">
           <i class="bi bi-headset"></i>
         </router-link>
 
@@ -80,20 +73,20 @@
                 <span class="user-role">{{ getRoleLabel() }}</span>
               </div>
             </div>
-            
+
             <div class="dropdown-divider"></div>
-            
+
             <div class="dropdown-menu">
               <router-link to="/usuario" class="dropdown-item" @click="closeUserMenu">
                 <i class="bi bi-person"></i>
                 Mi Perfil
               </router-link>
-              
+
               <router-link to="/soporte" class="dropdown-item" @click="closeUserMenu">
                 <i class="bi bi-headset"></i>
                 Soporte
               </router-link>
-              
+
               <button @click="logout" class="dropdown-item logout">
                 <i class="bi bi-box-arrow-right"></i>
                 Cerrar Sesión
@@ -127,32 +120,32 @@ const userMenuRef = ref(null)
 
 // Computed
 const isUserRoute = computed(() => {
-  return route.path.startsWith('/usuario') || 
-         route.path.startsWith('/dashboard') ||
-         route.path === '/ayuda' ||
-         route.path === '/soporte'
+  return route.path.startsWith('/usuario') ||
+    route.path.startsWith('/dashboard') ||
+    route.path === '/ayuda' ||
+    route.path === '/soporte'
 })
 
 // Methods
 const getUserInitials = () => {
   if (!authStore.user) return '?'
-  
+
   const email = authStore.user.email || ''
   const parts = email.split('@')[0].split('.')
-  
+
   if (parts.length >= 2) {
     return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase()
   }
-  
+
   return email.charAt(0).toUpperCase()
 }
 
 const getUserName = () => {
   if (!authStore.user) return 'Usuario'
-  
+
   const email = authStore.user.email || ''
   const username = email.split('@')[0]
-  
+
   // Capitalizar primera letra
   return username.charAt(0).toUpperCase() + username.slice(1)
 }
@@ -164,7 +157,7 @@ const getRoleLabel = () => {
     usuario: 'Usuario',
     cliente: 'Cliente'
   }
-  
+
   return roleLabels[authStore.role] || 'Usuario'
 }
 
@@ -447,28 +440,28 @@ onUnmounted(() => {
     padding: 0 16px;
     height: 56px;
   }
-  
+
   .navbar-brand {
     font-size: 1.3rem;
   }
-  
+
   .navbar-nav {
     gap: 12px;
   }
-  
+
   .nav-link {
     font-size: 0.8rem;
     padding: 6px 8px;
   }
-  
+
   .nav-link i {
     display: none;
   }
-  
+
   .navbar-actions {
     gap: 12px;
   }
-  
+
   .user-dropdown {
     width: 260px;
     right: -20px;
@@ -479,7 +472,7 @@ onUnmounted(() => {
   .navbar-nav {
     display: none;
   }
-  
+
   .user-dropdown {
     width: 240px;
     right: -40px;
