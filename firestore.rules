@@ -77,11 +77,54 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       // Solo los admins pueden leer logs
       allow read: if isAdmin();
-      
+
       // Permitir crear logs (para el sistema)
       allow create: if isAuthenticated();
     }
-    
+
+    // Reglas para tickets de soporte
+    match /tickets/{ticketId} {
+      // Los usuarios pueden crear tickets y leer sus propios tickets
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow read: if isAuthenticated() &&
+        (resource.data.userId == request.auth.uid || isAdmin());
+
+      // Solo los admins pueden actualizar tickets
+      allow update: if isAdmin();
+
+      // Solo los admins pueden eliminar tickets
+      allow delete: if isAdmin();
+    }
+
+    // Reglas para notificaciones
+    match /notifications/{notificationId} {
+      // Los usuarios pueden leer y actualizar sus propias notificaciones
+      allow read, update: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
+
+      // Solo el sistema puede crear notificaciones (a través de Cloud Functions)
+      allow create: if isAuthenticated();
+
+      // Los admins pueden leer todas las notificaciones
+      allow read: if isAdmin();
+    }
+
+    // Reglas para tarjetas bancarias (bank_cards)
+    match /bank_cards/{cardId} {
+      // Los admins tienen acceso completo
+      allow read, write: if isAdmin();
+
+      // Los usuarios pueden gestionar sus propias tarjetas
+      allow read, write: if isAuthenticated() &&
+        resource.data.propietarioUID == request.auth.uid;
+
+      // Permitir crear tarjetas para usuarios autenticados
+      allow create: if isAuthenticated() &&
+        request.resource.data.propietarioUID == request.auth.uid;
+    }
+
     // Regla temporal para desarrollo (REMOVER EN PRODUCCIÓN)
     // Permite acceso completo para testing
     match /{document=**} {

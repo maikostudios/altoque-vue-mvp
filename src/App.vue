@@ -1,38 +1,24 @@
 <template>
   <div class="app-container">
-    <!-- Navbar solo para rutas específicas (no en home) -->
-    <nav v-if="showNavbar" class="app-navbar">
-      <h1 class="navbar-title">De Una App</h1>
-      <ul class="navbar-menu">
-        <li><router-link to="/" class="nav-link">Home</router-link></li>
-        <li><router-link to="/login" class="nav-link">Login</router-link></li>
-        <li v-if="authStore.role === 'admin'">
-          <router-link to="/admin" class="nav-link">Admin Panel</router-link>
-        </li>
-        <li v-if="authStore.user">
-          <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
-        </li>
-        <li v-if="authStore.role === 'vendedor'">
-          <router-link to="/vendedor" class="nav-link">Vendedor</router-link>
-        </li>
-      </ul>
-      <button v-if="authStore.user" @click="logout" class="logout-btn">
-        Cerrar sesión
-      </button>
-    </nav>
+    <!-- Nueva navegación para usuarios logueados -->
+    <UserNavbar v-if="showNavbar" />
 
     <main :class="{ 'with-navbar': showNavbar, 'full-screen': !showNavbar }">
       <router-view />
     </main>
+
+    <!-- Footer para páginas logueadas -->
+    <AppFooter v-if="showNavbar && authStore.user" />
   </div>
 </template>
 
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from './store/auth'
 import { computed } from 'vue'
+import UserNavbar from './components/navigation/UserNavbar.vue'
+import AppFooter from './components/layout/AppFooter.vue'
 
-const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
@@ -40,11 +26,6 @@ const authStore = useAuthStore()
 const showNavbar = computed(() => {
   return route.path !== '/'
 })
-
-const logout = async () => {
-  await authStore.logout()
-  router.push('/login')
-}
 </script>
 
 <style scoped>

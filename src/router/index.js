@@ -55,6 +55,18 @@ const routes = [
     component: () => import("../views/PublicLandingView.vue"),
   },
   {
+    path: "/ayuda",
+    name: "Ayuda",
+    component: () => import("../views/HelpView.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/soporte",
+    name: "Soporte",
+    component: () => import("../views/SupportView.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
     path: "/:pathMatch(.*)*",
     name: "NotFound",
     component: () => import("../views/NotFoundView.vue"),
