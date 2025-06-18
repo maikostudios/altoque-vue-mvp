@@ -1,74 +1,96 @@
 <template>
-    <div class="sidebar">
+    <div class="sidebar" :class="{ 'collapsed': isCollapsed }">
+        <!-- Botón de colapso -->
+        <button @click="toggleSidebar" class="collapse-btn" :title="isCollapsed ? 'Expandir menú' : 'Colapsar menú'">
+            <i class="bi" :class="isCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+        </button>
+
         <div class="sidebar-header">
-            <h2>Panel Admin</h2>
+            <h2 v-show="!isCollapsed">Panel Admin</h2>
+            <div v-show="isCollapsed" class="logo-collapsed">PA</div>
         </div>
+
         <nav class="sidebar-nav">
             <ul>
                 <li>
                     <button @click="$emit('changeView', 'dashboard')" class="nav-item"
-                        :class="{ active: currentView === 'dashboard' }">
-                        📊 Dashboard
+                        :class="{ active: currentView === 'dashboard' }" :title="isCollapsed ? 'Dashboard' : ''">
+                        <i class="nav-icon">📊</i>
+                        <span v-show="!isCollapsed" class="nav-text">Dashboard</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'usuarios')" class="nav-item"
-                        :class="{ active: currentView === 'usuarios' }">
-                        ➕ Crear Usuario
+                        :class="{ active: currentView === 'usuarios' }" :title="isCollapsed ? 'Crear Usuario' : ''">
+                        <i class="nav-icon">➕</i>
+                        <span v-show="!isCollapsed" class="nav-text">Crear Usuario</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'lista')" class="nav-item"
-                        :class="{ active: currentView === 'lista' }">
-                        👥 Lista de Usuarios
+                        :class="{ active: currentView === 'lista' }" :title="isCollapsed ? 'Lista de Usuarios' : ''">
+                        <i class="nav-icon">👥</i>
+                        <span v-show="!isCollapsed" class="nav-text">Lista de Usuarios</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'vendedores')" class="nav-item"
-                        :class="{ active: currentView === 'vendedores' }">
-                        🧑‍💼 Vendedores
+                        :class="{ active: currentView === 'vendedores' }" :title="isCollapsed ? 'Vendedores' : ''">
+                        <i class="nav-icon">🧑‍💼</i>
+                        <span v-show="!isCollapsed" class="nav-text">Vendedores</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'soporte')" class="nav-item"
-                        :class="{ active: currentView === 'soporte' }">
-                        🎧 Crear Agente Soporte
+                        :class="{ active: currentView === 'soporte' }"
+                        :title="isCollapsed ? 'Crear Agente Soporte' : ''">
+                        <i class="nav-icon">🎧</i>
+                        <span v-show="!isCollapsed" class="nav-text">Crear Agente Soporte</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'lista-soporte')" class="nav-item"
-                        :class="{ active: currentView === 'lista-soporte' }">
-                        📋 Lista Agentes Soporte
+                        :class="{ active: currentView === 'lista-soporte' }"
+                        :title="isCollapsed ? 'Lista Agentes Soporte' : ''">
+                        <i class="nav-icon">📋</i>
+                        <span v-show="!isCollapsed" class="nav-text">Lista Agentes Soporte</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'gestion-tickets')" class="nav-item"
-                        :class="{ active: currentView === 'gestion-tickets' }">
-                        🎫 Gestión de Tickets
+                        :class="{ active: currentView === 'gestion-tickets' }"
+                        :title="isCollapsed ? 'Gestión de Tickets' : ''">
+                        <i class="nav-icon">🎫</i>
+                        <span v-show="!isCollapsed" class="nav-text">Gestión de Tickets</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'tarjetas')" class="nav-item"
-                        :class="{ active: currentView === 'tarjetas' }">
-                        💳 Cuentas Bancarias
+                        :class="{ active: currentView === 'tarjetas' }" :title="isCollapsed ? 'Cuentas Bancarias' : ''">
+                        <i class="nav-icon">💳</i>
+                        <span v-show="!isCollapsed" class="nav-text">Cuentas Bancarias</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'datos')" class="nav-item"
-                        :class="{ active: currentView === 'datos' }">
-                        📈 Datos Demográficos
+                        :class="{ active: currentView === 'datos' }" :title="isCollapsed ? 'Datos Demográficos' : ''">
+                        <i class="nav-icon">📈</i>
+                        <span v-show="!isCollapsed" class="nav-text">Datos Demográficos</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'estadisticas')" class="nav-item"
-                        :class="{ active: currentView === 'estadisticas' }">
-                        📊 Estadísticas
+                        :class="{ active: currentView === 'estadisticas' }" :title="isCollapsed ? 'Estadísticas' : ''">
+                        <i class="nav-icon">📊</i>
+                        <span v-show="!isCollapsed" class="nav-text">Estadísticas</span>
                     </button>
                 </li>
                 <li>
                     <button @click="$emit('changeView', 'configuraciones')" class="nav-item"
-                        :class="{ active: currentView === 'configuraciones' }">
-                        ⚙️ Configuraciones
+                        :class="{ active: currentView === 'configuraciones' }"
+                        :title="isCollapsed ? 'Configuraciones' : ''">
+                        <i class="nav-icon">⚙️</i>
+                        <span v-show="!isCollapsed" class="nav-text">Configuraciones</span>
                     </button>
                 </li>
             </ul>
@@ -77,6 +99,7 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 
 defineProps({
     currentView: {
@@ -86,19 +109,51 @@ defineProps({
 })
 
 defineEmits(['changeView'])
+
+// Estado del sidebar colapsado
+const isCollapsed = ref(false)
+
+// Función para alternar el estado del sidebar
+const toggleSidebar = () => {
+    isCollapsed.value = !isCollapsed.value
+    // Guardar preferencia en localStorage
+    localStorage.setItem('sidebarCollapsed', isCollapsed.value.toString())
+
+    // Emitir evento para que el componente padre ajuste el layout
+    document.dispatchEvent(new CustomEvent('sidebar-toggle', {
+        detail: { collapsed: isCollapsed.value }
+    }))
+}
+
+// Cargar preferencia guardada al montar el componente
+onMounted(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed')
+    if (savedState !== null) {
+        isCollapsed.value = savedState === 'true'
+    }
+
+    // Detectar pantallas grandes para expandir automáticamente
+    const mediaQuery = window.matchMedia('(min-width: 1200px)')
+    if (mediaQuery.matches && savedState === null) {
+        isCollapsed.value = false
+    }
+
+    // Emitir estado inicial
+    document.dispatchEvent(new CustomEvent('sidebar-toggle', {
+        detail: { collapsed: isCollapsed.value }
+    }))
+})
 </script>
 
 <style scoped>
 .sidebar {
     position: fixed;
     top: 80px;
-    /* Espacio para el navbar superior */
     left: 0;
     width: 280px;
     background: var(--color-surface);
     color: var(--color-text);
     min-height: calc(100vh - 80px);
-    /* Ajustar altura */
     height: calc(100vh - 80px);
     padding: 1.5rem 0;
     border-right: 1px solid var(--color-border);
@@ -106,12 +161,51 @@ defineEmits(['changeView'])
     font-family: var(--font-primary);
     z-index: 1000;
     overflow-y: auto;
+    transition: width 0.3s ease, padding 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 70px;
+    padding: 1.5rem 0.5rem;
+}
+
+/* Botón de colapso */
+.collapse-btn {
+    position: absolute;
+    top: 1rem;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background: var(--color-turquesa);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    z-index: 1001;
+}
+
+.collapse-btn:hover {
+    background: var(--color-azul);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
 }
 
 .sidebar-header {
     padding: 0 1.5rem 1.5rem;
     border-bottom: 1px solid var(--color-border);
     margin-bottom: 1.5rem;
+    text-align: center;
+    transition: padding 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding: 0 0.5rem 1rem;
 }
 
 .sidebar-header h2 {
@@ -120,6 +214,22 @@ defineEmits(['changeView'])
     font-weight: 600;
     color: var(--color-turquesa);
     font-family: var(--font-primary);
+    transition: opacity 0.3s ease;
+}
+
+.logo-collapsed {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--color-turquesa);
+    background: var(--color-surface-variant);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border: 2px solid var(--color-turquesa);
 }
 
 .sidebar-nav ul {
@@ -140,9 +250,30 @@ defineEmits(['changeView'])
     font-size: 0.95rem;
     font-weight: 500;
     font-family: var(--font-secondary);
-    border-radius: 0;
-    margin: 0.25rem 0.75rem;
     border-radius: 1rem;
+    margin: 0.25rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+}
+
+.sidebar.collapsed .nav-item {
+    padding: 1rem 0.5rem;
+    margin: 0.25rem 0.25rem;
+    justify-content: center;
+    gap: 0;
+}
+
+.nav-icon {
+    font-size: 1.1rem;
+    min-width: 20px;
+    text-align: center;
+}
+
+.nav-text {
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
 }
 
 .nav-item:hover {

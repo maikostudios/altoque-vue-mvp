@@ -2,7 +2,7 @@
 <template>
     <div class="admin-panel">
         <SidebarMenu :currentView="currentView" @changeView="changeView" />
-        <div class="main-content">
+        <div class="main-content" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
             <component :is="currentComponent" @show-notification="showNotification" />
         </div>
 
@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import SidebarMenu from '@/components/admin/SidebarMenu.vue'
 
 // Componentes cargables dinámicamente
@@ -31,6 +31,7 @@ import Settings from '@/components/admin/Settings.vue'
 import Notification from "../components/Notification.vue";
 
 const currentView = ref('dashboard')
+const sidebarCollapsed = ref(false)
 
 const viewsMap = {
     dashboard: DashboardStats,
@@ -52,6 +53,26 @@ function changeView(view) {
     currentView.value = view
 }
 
+// Manejar el evento de toggle del sidebar
+const handleSidebarToggle = (event) => {
+    sidebarCollapsed.value = event.detail.collapsed
+}
+
+// Configurar listeners al montar
+onMounted(() => {
+    document.addEventListener('sidebar-toggle', handleSidebarToggle)
+    // Cargar estado inicial del sidebar
+    const savedState = localStorage.getItem('sidebarCollapsed')
+    if (savedState !== null) {
+        sidebarCollapsed.value = savedState === 'true'
+    }
+})
+
+// Limpiar listeners al desmontar
+onUnmounted(() => {
+    document.removeEventListener('sidebar-toggle', handleSidebarToggle)
+})
+
 // Mensaje y tipo de notificación
 const notificationMessage = ref("");
 const notificationType = ref("success");
@@ -67,6 +88,8 @@ const showNotification = (type, message) => {
 </script>
 
 <style scoped>
+@import '@/styles/admin-layout.css';
+
 .admin-panel {
     display: flex;
     min-height: 100vh;
@@ -81,10 +104,15 @@ const showNotification = (type, message) => {
     flex-direction: column;
     overflow: hidden;
     margin-left: 280px;
-    padding-top: 2rem;
-    /* Espacio para sidebar fijo */
+    padding: 2rem 1.5rem;
     width: calc(100% - 280px);
     min-height: calc(100vh - 80px);
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.main-content.sidebar-collapsed {
+    margin-left: 70px;
+    width: calc(100% - 70px);
 }
 
 /* Animación de entrada */
@@ -98,20 +126,25 @@ const showNotification = (type, message) => {
         flex-direction: column;
     }
 
-    .main-content {
+    .main-content,
+    .main-content.sidebar-collapsed {
         margin-left: 0;
         width: 100%;
-        padding-top: 1rem;
+        padding: 1rem;
         min-height: calc(100vh - 80px);
     }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
     .main-content {
-        margin-left: 260px;
-        width: calc(100% - 260px);
-        padding-top: 2rem;
-        min-height: calc(100vh - 80px);
+        margin-left: 280px;
+        width: calc(100% - 280px);
+        padding: 1.5rem;
+    }
+
+    .main-content.sidebar-collapsed {
+        margin-left: 70px;
+        width: calc(100% - 70px);
     }
 }
 
@@ -119,8 +152,12 @@ const showNotification = (type, message) => {
     .main-content {
         margin-left: 280px;
         width: calc(100% - 280px);
-        padding-top: 2rem;
-        min-height: calc(100vh - 80px);
+        padding: 2rem;
+    }
+
+    .main-content.sidebar-collapsed {
+        margin-left: 70px;
+        width: calc(100% - 70px);
     }
 }
 </style>
