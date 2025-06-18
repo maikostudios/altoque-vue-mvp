@@ -9,14 +9,14 @@ service cloud.firestore {
     
     // Función para verificar si el usuario es admin
     function isAdmin() {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'admin';
     }
-    
+
     // Función para verificar si el usuario es vendedor
     function isVendedor() {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendedor';
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'vendedor';
     }
     
     // Función para verificar si es el propio usuario

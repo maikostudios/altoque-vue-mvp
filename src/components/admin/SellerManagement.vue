@@ -280,7 +280,7 @@ const registrarVendedor = async () => {
         // Crear documento en Firestore
         await setDoc(doc(db, 'users', uid), {
             email: form.value.email,
-            role: 'vendedor',
+            rol: 'vendedor',
             nombre: form.value.nombre,
             apellido: form.value.apellido,
             rut: formatRut(form.value.rut),
@@ -330,7 +330,7 @@ const registrarVendedor = async () => {
 const cargarVendedores = async () => {
     try {
         loadingVendedores.value = true
-        const q = query(collection(db, 'users'), where('role', '==', 'vendedor'))
+        const q = query(collection(db, 'users'), where('rol', '==', 'vendedor'))
         const querySnapshot = await getDocs(q)
 
         vendedores.value = []
