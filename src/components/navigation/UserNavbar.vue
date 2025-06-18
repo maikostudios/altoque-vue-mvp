@@ -10,7 +10,8 @@
 
       <!-- Navigation Links -->
       <div class="navbar-nav">
-        <router-link to="/" class="nav-link">
+        <!-- Home solo si no estamos en admin -->
+        <router-link v-if="!isAdminRoute" to="/" class="nav-link">
           <i class="bi bi-house"></i>
           Home
         </router-link>
@@ -124,6 +125,10 @@ const isUserRoute = computed(() => {
     route.path.startsWith('/dashboard') ||
     route.path === '/ayuda' ||
     route.path === '/soporte'
+})
+
+const isAdminRoute = computed(() => {
+  return route.path.startsWith('/admin')
 })
 
 // Methods

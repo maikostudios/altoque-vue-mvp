@@ -1,28 +1,20 @@
 <!-- filepath: d:\proyectosvuepersonal\maikostudiosWeb\altoque-vue-mvp\src\views\AdminPanelView.vue -->
 <template>
-    <div class="p-4 text-center text-lg">Vista AdminPanel</div>
-
-    <!-- Notificación -->
-    <Notification v-if="notificationMessage" :message="notificationMessage" :type="notificationType"
-        @close="notificationMessage = ''" />
-
     <div class="admin-panel">
         <SidebarMenu :currentView="currentView" @changeView="changeView" />
         <div class="main-content">
-            <HeaderPanel @logout="handleLogout" />
             <component :is="currentComponent" @show-notification="showNotification" />
         </div>
+
+        <!-- Notificación -->
         <Notification v-if="notificationMessage" :message="notificationMessage" :type="notificationType"
             @close="notificationMessage = ''" />
     </div>
-
-
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import SidebarMenu from '@/components/admin/SidebarMenu.vue'
-import HeaderPanel from '@/components/admin/HeaderPanel.vue'
 
 // Componentes cargables dinámicamente
 import DashboardStats from '@/components/admin/DashboardStats.vue'
@@ -60,21 +52,6 @@ function changeView(view) {
     currentView.value = view
 }
 
-async function handleLogout() {
-    try {
-        const { useAuthStore } = await import('@/store/auth')
-        const { useRouter } = await import('vue-router')
-
-        const authStore = useAuthStore()
-        const router = useRouter()
-
-        await authStore.logout()
-        router.push('/login')
-    } catch (error) {
-        console.error('Error al cerrar sesión:', error)
-    }
-}
-
 // Mensaje y tipo de notificación
 const notificationMessage = ref("");
 const notificationType = ref("success");
@@ -104,8 +81,7 @@ const showNotification = (type, message) => {
     flex-direction: column;
     overflow: hidden;
     margin-left: 280px;
-    margin-top: 80px;
-    /* Espacio para el navbar superior */
+    padding-top: 2rem;
     /* Espacio para sidebar fijo */
     width: calc(100% - 280px);
     min-height: calc(100vh - 80px);
@@ -124,24 +100,27 @@ const showNotification = (type, message) => {
 
     .main-content {
         margin-left: 0;
-        margin-top: 0;
         width: 100%;
+        padding-top: 1rem;
+        min-height: calc(100vh - 80px);
     }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
     .main-content {
         margin-left: 260px;
-        margin-top: 80px;
         width: calc(100% - 260px);
+        padding-top: 2rem;
+        min-height: calc(100vh - 80px);
     }
 }
 
 @media (min-width: 1025px) {
     .main-content {
         margin-left: 280px;
-        margin-top: 80px;
         width: calc(100% - 280px);
+        padding-top: 2rem;
+        min-height: calc(100vh - 80px);
     }
 }
 </style>
