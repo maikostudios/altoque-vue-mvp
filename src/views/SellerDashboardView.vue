@@ -51,12 +51,18 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card ranking-card">
                 <div class="stat-icon">⭐</div>
                 <div class="stat-content">
                     <h3>Ranking</h3>
-                    <p class="stat-number">#{{ stats.ranking || 'N/A' }}</p>
-                    <span class="stat-label">Este mes</span>
+                    <p class="stat-number">
+                        <span v-if="stats.ranking">#{{ stats.ranking }}</span>
+                        <span v-else class="loading-ranking">Calculando...</span>
+                    </p>
+                    <span class="stat-label" v-if="stats.ranking && stats.totalVendedores">
+                        de {{ stats.totalVendedores }} vendedores
+                    </span>
+                    <span class="stat-label" v-else>Este mes</span>
                 </div>
             </div>
         </div>
@@ -397,6 +403,7 @@ import { db, auth } from '@/firebase'
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, setDoc } from 'firebase/firestore'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import GeoSelector from '@/components/forms/GeoSelector.vue'
+import { vendorRankingService } from '@/services/vendorRankingService.js'
 
 const authStore = useAuthStore()
 const loading = ref(true)
@@ -659,6 +666,11 @@ const loadVendedorData = async () => {
         await loadUsuariosRecientes()
         console.log('✅ Carga de usuarios recientes completada')
 
+        // Cargar ranking del vendedor
+        console.log('🏆 Cargando ranking del vendedor...')
+        await loadVendorRanking()
+        console.log('✅ Ranking del vendedor cargado')
+
     } catch (error) {
         console.error('Error cargando datos del vendedor:', error)
     } finally {
@@ -882,6 +894,23 @@ const closeModal = () => {
     }
 }
 
+const loadVendorRanking = async () => {
+    try {
+        const rankingInfo = await vendorRankingService.getVendorRanking(authStore.user.email, 'mes')
+
+        // Actualizar el ranking en las estadísticas
+        stats.value.ranking = rankingInfo.ranking
+        stats.value.totalVendedores = rankingInfo.totalVendedores
+        stats.value.porcentajeMeta = rankingInfo.porcentajeMeta
+
+        console.log(`🏆 Ranking del vendedor: ${rankingInfo.ranking}/${rankingInfo.totalVendedores}`)
+
+    } catch (error) {
+        console.error('Error cargando ranking del vendedor:', error)
+        stats.value.ranking = null
+    }
+}
+
 const refreshData = async () => {
     console.log('🔄 Refrescando datos del dashboard...')
     console.log('👤 Usuario actual:', authStore.user?.email)
@@ -1027,6 +1056,28 @@ export default {
 .stat-label {
     color: var(--color-text-secondary);
     font-size: 0.9rem;
+}
+
+/* Estilos específicos para la tarjeta de ranking */
+.ranking-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.ranking-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e);
+}
+
+.loading-ranking {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    font-size: 1.5rem;
 }
 
 /* Progress Section */

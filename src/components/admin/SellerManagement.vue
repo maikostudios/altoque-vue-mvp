@@ -187,6 +187,9 @@
             </div>
         </div>
 
+        <!-- Ranking de Vendedores -->
+        <VendorRanking />
+
         <!-- Información adicional -->
         <div class="info-section">
             <div class="info-card">
@@ -197,6 +200,7 @@
                     <li>No pueden ver información de otros vendedores</li>
                     <li>Pueden gestionar sus propias metas mensuales</li>
                     <li>Reciben notificaciones sobre su progreso</li>
+                    <li>El ranking se actualiza automáticamente basado en usuarios registrados</li>
                 </ul>
             </div>
         </div>
@@ -209,6 +213,7 @@ import { auth, db } from '@/firebase'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { setDoc, doc, serverTimestamp, collection, getDocs, query, where } from 'firebase/firestore'
 import { useAuthStore } from '@/store/auth'
+import VendorRanking from './VendorRanking.vue'
 
 const authStore = useAuthStore()
 const submitting = ref(false)
