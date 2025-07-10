@@ -18,6 +18,17 @@ service cloud.firestore {
       return isAuthenticated() &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'vendedor';
     }
+
+    // Función para verificar si el usuario es soporte
+    function isSoporte() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'soporte';
+    }
+
+    // Función para verificar roles administrativos (admin o soporte)
+    function isAdminOrSupport() {
+      return isAdmin() || isSoporte();
+    }
     
     // Función para verificar si es el propio usuario
     function isOwner(userId) {
@@ -28,15 +39,23 @@ service cloud.firestore {
     match /users/{userId} {
       // Los admins pueden leer y escribir todos los usuarios
       allow read, write: if isAdmin();
-      
-      // Los vendedores pueden leer usuarios
-      allow read: if isVendedor();
-      
+
+      // Los vendedores y soporte pueden leer usuarios
+      allow read: if isVendedor() || isSoporte();
+
       // Los usuarios pueden leer y actualizar su propia información
-      allow read, update: if isOwner(userId);
-      
-      // Permitir creación de usuarios (para registro)
-      allow create: if isAuthenticated();
+      // PERO NO pueden cambiar campos críticos como rol, isPremium, etc.
+      allow read: if isOwner(userId);
+      allow update: if isOwner(userId) &&
+                       !('rol' in request.resource.data.diff(resource.data).affectedKeys()) &&
+                       !('isPremium' in request.resource.data.diff(resource.data).affectedKeys()) &&
+                       !('idVerificationStatus' in request.resource.data.diff(resource.data).affectedKeys());
+
+      // Permitir creación de usuarios solo con rol 'usuario' por defecto
+      allow create: if isAuthenticated() &&
+                       request.resource.data.rol == 'usuario' &&
+                       request.resource.data.isPremium == false &&
+                       request.resource.data.idVerificationStatus == 'pending';
     }
     
     // Reglas para cuentas bancarias
@@ -155,10 +174,46 @@ service cloud.firestore {
         request.resource.data.propietarioUID == request.auth.uid;
     }
 
-    // Regla temporal para desarrollo (REMOVER EN PRODUCCIÓN)
-    // Permite acceso completo para testing
-    match /{document=**} {
-      allow read, write: if true;
+    // Reglas para public_landings (páginas públicas de transferencia)
+    match /public_landings/{landingId} {
+      // Lectura pública para todos
+      allow read: if true;
+
+      // Solo admins y vendedores pueden crear/modificar landings
+      allow create, update, delete: if isAdmin() || isVendedor();
+
+      // Los usuarios solo pueden actualizar métricas de engagement
+      allow update: if isAuthenticated() &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['engagementMetrics']);
     }
+
+    // Reglas para logs de auditoría (inmutables)
+    match /logs/{logId} {
+      // Solo admins pueden leer logs
+      allow read: if isAdmin();
+
+      // Solo el sistema puede crear logs (Cloud Functions)
+      allow create: if isAuthenticated();
+
+      // Los logs son inmutables - no se pueden actualizar ni eliminar
+      allow update, delete: if false;
+    }
+
+    // Reglas para subcollección bank_accounts
+    match /users/{userId}/bank_accounts/{accountId} {
+      // Solo el propietario puede gestionar sus cuentas
+      allow read, write: if isOwner(userId);
+
+      // Admins pueden leer todas las cuentas
+      allow read: if isAdmin();
+
+      // Limitar número de cuentas para usuarios no premium
+      allow create: if isOwner(userId) &&
+                       (get(/databases/$(database)/documents/users/$(userId)).data.isPremium == true ||
+                        get(/databases/$(database)/documents/users/$(userId)/bank_accounts).size() < 2);
+    }
+
+    // ✅ REGLAS DE SEGURIDAD MEJORADAS
+    // Se han eliminado las reglas permisivas y se han implementado controles específicos
   }
 }

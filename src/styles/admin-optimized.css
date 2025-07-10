@@ -1,0 +1,353 @@
+/* Admin Panel Optimized Styles */
+/* Archivo CSS optimizado para mejor rendimiento del panel de administración */
+
+/* Variables optimizadas para admin */
+:root {
+  --admin-transition-fast: 0.15s ease;
+  --admin-transition-normal: 0.2s ease;
+  --admin-border-radius: 0.75rem;
+  --admin-shadow-light: 0 2px 8px rgba(0, 204, 204, 0.08);
+  --admin-shadow-medium: 0 4px 12px rgba(0, 204, 204, 0.12);
+}
+
+/* Reset de animaciones pesadas para admin */
+.admin-panel *,
+.admin-panel *::before,
+.admin-panel *::after {
+  animation-duration: 0.2s !important;
+  transition-duration: 0.2s !important;
+}
+
+/* Contenedor principal optimizado */
+.admin-panel {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-background);
+  font-family: var(--font-primary);
+  position: relative;
+  /* Removido overflow: hidden para mejor rendimiento */
+}
+
+/* Contenido principal optimizado - MOBILE FIRST */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* MOBILE FIRST: Sin margin por defecto */
+  margin-left: 0;
+  padding: 0.75rem;
+  width: 100%;
+  min-height: calc(100vh - 60px);
+  transition: margin-left var(--admin-transition-normal), width var(--admin-transition-normal);
+  max-width: 100%;
+  /* Optimización de rendering */
+  will-change: margin-left, width;
+  contain: layout style;
+}
+
+/* DESKTOP: Agregar sidebar margin */
+@media (min-width: 769px) {
+  .main-content {
+    margin-left: 280px;
+    padding: 1.5rem;
+    width: calc(100% - 280px);
+    min-height: calc(100vh - 80px);
+  }
+
+  .main-content.sidebar-collapsed {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+  }
+}
+
+/* Grid optimizado para stats - MOBILE FIRST */
+.stats-grid {
+  display: grid;
+  /* MOBILE: Una columna */
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  /* Optimización de grid */
+  contain: layout;
+}
+
+/* TABLET: Dos columnas */
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* DESKTOP: Auto-fit con mínimo optimizado */
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    margin-bottom: 2rem;
+  }
+}
+
+/* Tarjetas de estadísticas optimizadas */
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--admin-border-radius);
+  padding: 1.5rem;
+  text-align: center;
+  /* Solo transición de sombra para mejor rendimiento */
+  transition: box-shadow var(--admin-transition-fast);
+  /* Optimización de rendering */
+  contain: layout style;
+}
+
+.stat-card:hover {
+  box-shadow: var(--admin-shadow-medium);
+  /* Removido transform para mejor rendimiento */
+}
+
+/* Números de estadísticas */
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-turquesa);
+  margin: 0;
+  /* Optimización de texto */
+  font-feature-settings: "tnum";
+}
+
+.stat-label {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Botones optimizados */
+.btn-optimized {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--admin-border-radius);
+  font-family: var(--font-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color var(--admin-transition-fast), box-shadow var(--admin-transition-fast);
+  text-decoration: none;
+  gap: 0.5rem;
+  /* Optimización de rendering */
+  contain: layout style;
+}
+
+.btn-optimized:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary-optimized {
+  background: linear-gradient(135deg, var(--color-turquesa), var(--color-azul));
+  color: white;
+  box-shadow: var(--admin-shadow-light);
+}
+
+.btn-primary-optimized:hover:not(:disabled) {
+  box-shadow: var(--admin-shadow-medium);
+  /* Removido transform para mejor rendimiento */
+}
+
+/* Tablas optimizadas */
+.table-optimized {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  border-radius: var(--admin-border-radius);
+  overflow: hidden;
+  /* Optimización de tabla */
+  table-layout: fixed;
+}
+
+.table-optimized th,
+.table-optimized td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  /* Optimización de celdas */
+  contain: layout style;
+}
+
+.table-optimized th {
+  background: var(--color-surface-variant);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Filas de tabla optimizadas */
+.table-row-optimized {
+  transition: background-color var(--admin-transition-fast);
+}
+
+.table-row-optimized:hover {
+  background: rgba(0, 204, 204, 0.05);
+}
+
+/* Formularios optimizados */
+.form-optimized {
+  background: var(--color-surface);
+  border-radius: var(--admin-border-radius);
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  /* Optimización de formulario */
+  contain: layout style;
+}
+
+.form-group-optimized {
+  margin-bottom: 1.5rem;
+}
+
+.form-label-optimized {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.form-input-optimized {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  transition: border-color var(--admin-transition-fast), box-shadow var(--admin-transition-fast);
+}
+
+.form-input-optimized:focus {
+  outline: none;
+  border-color: var(--color-turquesa);
+  box-shadow: 0 0 0 3px rgba(0, 204, 204, 0.1);
+}
+
+/* Loading states optimizados */
+.loading-optimized {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--color-surface);
+  border-radius: var(--admin-border-radius);
+  border: 1px solid var(--color-border);
+}
+
+.spinner-optimized {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-surface-variant);
+  border-top: 3px solid var(--color-turquesa);
+  border-radius: 50%;
+  animation: spin-optimized 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin-optimized {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Cards optimizadas */
+.card-optimized {
+  background: var(--color-surface);
+  border-radius: var(--admin-border-radius);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  /* Solo transición de sombra */
+  transition: box-shadow var(--admin-transition-fast);
+  /* Optimización de rendering */
+  contain: layout style;
+}
+
+.card-optimized:hover {
+  box-shadow: var(--admin-shadow-medium);
+}
+
+.card-header-optimized {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-variant);
+}
+
+.card-content-optimized {
+  padding: 1.5rem;
+}
+
+/* ✅ REMOVIDO: Media queries redundantes */
+/* Ahora usamos mobile-first approach arriba */
+
+/* Ajustes específicos para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.5rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+}
+
+/* Optimizaciones para dispositivos con movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  .admin-panel *,
+  .admin-panel *::before,
+  .admin-panel *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .spinner-optimized {
+    animation: none;
+  }
+}
+
+/* Optimizaciones para alto contraste */
+@media (prefers-contrast: high) {
+  .stat-card,
+  .card-optimized,
+  .form-optimized {
+    border-width: 2px;
+  }
+}
+
+/* Utilidades de rendimiento */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.contain-layout {
+  contain: layout;
+}
+
+.contain-style {
+  contain: style;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict {
+  contain: strict;
+}

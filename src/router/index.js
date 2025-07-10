@@ -26,6 +26,18 @@ const routes = [
     meta: { requiresAuth: true, role: "admin" },
   },
   {
+    path: "/admin/id-verification",
+    name: "IdVerification",
+    component: () => import("../views/admin/IdVerificationView.vue"),
+    meta: { requiresAuth: true, role: "admin" },
+  },
+  {
+    path: "/admin/audit-logs",
+    name: "AuditLogs",
+    component: () => import("../views/admin/AuditLogsView.vue"),
+    meta: { requiresAuth: true, role: "admin" },
+  },
+  {
     path: "/vendedor",
     name: "Vendedor",
     component: () => import("../views/SellerDashboardView.vue"),

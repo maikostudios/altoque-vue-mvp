@@ -38,8 +38,16 @@
             <button @click="refreshData" class="btn btn-primary">Reintentar</button>
         </div>
 
+        <!-- Empty state -->
+        <div v-else-if="dataReady && usuarios.length === 0" class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h3>No hay datos demográficos</h3>
+            <p>No se encontraron usuarios con rol 'usuario' para analizar.</p>
+            <button @click="refreshData" class="btn btn-primary">Recargar datos</button>
+        </div>
+
         <!-- Demographics grid -->
-        <div v-else class="demographics-grid">
+        <div v-else-if="dataReady && usuarios.length > 0" class="demographics-grid">
             <!-- Por Ubicación -->
             <div class="demo-card location-card">
                 <div class="card-header">
@@ -176,11 +184,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { db } from '@/firebase'
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore'
+import { useOptimizedFirestore } from '@/composables/useOptimizedFirestore.js'
 
 const emit = defineEmits(['showNotification'])
+
+// Usar composable optimizado
+const { getUsers, loading: firestoreLoading, error: firestoreError, clearCache } = useOptimizedFirestore()
 
 // Ubicaciones jerárquicamente correctas
 const ubicacionesJerarquicas = [
@@ -224,6 +236,25 @@ const loading = ref(true)
 const error = ref(null)
 const usuarios = ref([])
 const completing = ref(false)
+const dataReady = ref(false)
+
+// Cache para computed properties
+const computedCache = ref({
+    locationData: null,
+    ageData: null,
+    genderData: null,
+    lastUpdate: null
+})
+
+// Función para invalidar cache de computed
+const invalidateComputedCache = () => {
+    computedCache.value = {
+        locationData: null,
+        ageData: null,
+        genderData: null,
+        lastUpdate: null
+    }
+}
 
 // Computed para estadísticas generales
 const totalUsuarios = computed(() => usuarios.value.length)
@@ -238,20 +269,28 @@ const usuariosConEdad = computed(() => {
     return usuarios.value.filter(user => user.fechaNacimiento).length
 })
 
-// Computed para datos de ubicación
+// Computed para datos de ubicación (optimizado con cache)
 const locationData = computed(() => {
-    const locationMap = new Map()
+    const currentUpdate = usuarios.value.length + JSON.stringify(usuarios.value.map(u => u.comuna || u.comunaNombre))
 
-    usuarios.value.forEach(user => {
-        // Priorizar comunaNombre, luego comuna
-        const location = user.comunaNombre || user.comuna || 'Sin especificar'
-        locationMap.set(location, (locationMap.get(location) || 0) + 1)
-    })
+    // Verificar cache
+    if (computedCache.value.locationData && computedCache.value.lastUpdate === currentUpdate) {
+        return computedCache.value.locationData
+    }
 
     const total = usuarios.value.length
     if (total === 0) return []
 
-    return Array.from(locationMap.entries())
+    const locationMap = new Map()
+
+    // Optimización: usar for loop en lugar de forEach
+    for (let i = 0; i < total; i++) {
+        const user = usuarios.value[i]
+        const location = user.comunaNombre || user.comuna || 'Sin especificar'
+        locationMap.set(location, (locationMap.get(location) || 0) + 1)
+    }
+
+    const result = Array.from(locationMap.entries())
         .map(([location, count]) => ({
             location,
             count,
@@ -259,9 +298,15 @@ const locationData = computed(() => {
         }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 10) // Top 10 ubicaciones
+
+    // Guardar en cache
+    computedCache.value.locationData = result
+    computedCache.value.lastUpdate = currentUpdate
+
+    return result
 })
 
-// Computed para datos de edad
+// Computed para datos de edad (optimizado)
 const ageData = computed(() => {
     const ageRanges = {
         '18-25 años': { min: 18, max: 25, count: 0 },
@@ -271,11 +316,17 @@ const ageData = computed(() => {
         '56+ años': { min: 56, max: 999, count: 0 }
     }
 
-    usuarios.value.forEach(user => {
+    // Optimización: usar for loop y cache de rangos
+    const rangeEntries = Object.entries(ageRanges)
+
+    for (let i = 0; i < usuarios.value.length; i++) {
+        const user = usuarios.value[i]
         if (user.fechaNacimiento) {
             const age = calculateAge(user.fechaNacimiento)
             if (age) {
-                for (const [range, config] of Object.entries(ageRanges)) {
+                // Optimización: break early cuando se encuentra el rango
+                for (let j = 0; j < rangeEntries.length; j++) {
+                    const [, config] = rangeEntries[j]
                     if (age >= config.min && age <= config.max) {
                         config.count++
                         break
@@ -283,7 +334,7 @@ const ageData = computed(() => {
                 }
             }
         }
-    })
+    }
 
     const totalWithAge = usuariosConEdad.value
     if (totalWithAge === 0) return []
@@ -372,37 +423,19 @@ const loadDemographicsData = async () => {
     try {
         loading.value = true
         error.value = null
+        dataReady.value = false
 
-        console.log('🔍 Cargando datos demográficos...')
+        console.log('🔍 Cargando datos demográficos optimizados...')
 
-        // Consultar todos los usuarios primero
-        const usersSnapshot = await getDocs(collection(db, 'users'))
-        const usersData = []
-        const allUsers = []
+        // Usar consulta optimizada con cache
+        const usersData = await getUsers('usuario', true)
 
-        usersSnapshot.forEach((doc) => {
-            const userData = { id: doc.id, ...doc.data() }
-            allUsers.push(userData)
-
-            // Migrar de 'role' a 'rol' si es necesario
-            if (userData.role && !userData.rol) {
-                userData.rol = userData.role
-            }
-
-            // Solo incluir si el rol es 'usuario' (en cualquier campo)
-            const userRole = userData.rol || userData.role
-            console.log(`👤 Usuario: ${userData.nombre || userData.email}, Rol: ${userRole}`)
-
-            if (userRole === 'usuario') {
-                usersData.push(userData)
-                console.log(`✅ Usuario incluido: ${userData.nombre} ${userData.apellido}`)
-            }
-        })
-
-        console.log(`📊 Total usuarios en DB: ${allUsers.length}`)
         console.log(`👥 Usuarios con rol 'usuario': ${usersData.length}`)
 
         usuarios.value = usersData
+
+        // Invalidar cache de computed properties
+        invalidateComputedCache()
 
         console.log('✅ Datos demográficos cargados:', {
             total: usuarios.value.length,
@@ -411,18 +444,32 @@ const loadDemographicsData = async () => {
             premium: usuarios.value.filter(u => u.esPremium).length
         })
 
+        // Esperar un tick para que los computed se actualicen
+        await nextTick()
+
+        // Marcar datos como listos después de un pequeño delay para evitar el flash
+        setTimeout(() => {
+            dataReady.value = true
+        }, 50) // Reducido de 100ms a 50ms
+
         emit('showNotification', 'success', `Datos demográficos actualizados: ${usuarios.value.length} usuarios analizados`)
 
     } catch (err) {
         console.error('❌ Error cargando datos demográficos:', err)
         error.value = 'Error al cargar los datos demográficos: ' + err.message
         emit('showNotification', 'error', 'Error al cargar datos demográficos')
+        dataReady.value = false
     } finally {
         loading.value = false
     }
 }
 
 const refreshData = () => {
+    // Limpiar cache de Firestore para forzar nueva consulta
+    clearCache('users')
+    // Limpiar cache de computed properties
+    invalidateComputedCache()
+    // Recargar datos
     loadDemographicsData()
 }
 
@@ -612,9 +659,10 @@ onMounted(() => {
     margin-top: 0.25rem;
 }
 
-/* Loading and Error States */
+/* Loading, Error and Empty States */
 .loading-state,
-.error-state {
+.error-state,
+.empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -661,11 +709,30 @@ onMounted(() => {
     margin: 0 0 1.5rem 0;
 }
 
+.empty-state .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.empty-state h3 {
+    color: var(--color-text);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    color: var(--color-text-secondary);
+    margin: 0 0 1.5rem 0;
+    max-width: 400px;
+}
+
 /* Demographics Grid */
 .demographics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 1.5rem;
+    /* Removida animación para mejor rendimiento */
 }
 
 /* Demo Cards */
@@ -675,12 +742,13 @@ onMounted(() => {
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--color-border);
     overflow: hidden;
-    transition: all var(--duration-normal) var(--easing-default);
+    /* Transición simplificada para mejor rendimiento */
+    transition: box-shadow 0.2s ease;
 }
 
 .demo-card:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow-xl);
+    /* Removido transform para mejor rendimiento */
 }
 
 .card-header {
@@ -712,7 +780,8 @@ onMounted(() => {
     align-items: center;
     padding: 1rem 0;
     border-bottom: 1px solid var(--color-border);
-    transition: all var(--duration-normal) var(--easing-default);
+    /* Transición simplificada */
+    transition: background-color 0.15s ease;
 }
 
 .demo-item:last-child {
@@ -721,10 +790,7 @@ onMounted(() => {
 
 .demo-item:hover {
     background: var(--color-surface-variant);
-    margin: 0 -1.5rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    border-radius: 0.5rem;
+    /* Removidas animaciones complejas de margin y padding */
 }
 
 .item-info {
@@ -772,7 +838,7 @@ onMounted(() => {
     height: 100%;
     background: linear-gradient(135deg, var(--color-turquesa), var(--color-azul));
     border-radius: 3px;
-    transition: width 0.8s ease-out;
+    transition: width 0.3s ease-out;
 }
 
 .progress-fill.premium {

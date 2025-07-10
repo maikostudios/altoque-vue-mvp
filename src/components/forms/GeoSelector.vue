@@ -1,103 +1,92 @@
 <template>
     <div class="geo-selector">
         <!-- País -->
-        <div class="form-group">
-            <label for="pais" class="form-label">
-                País <span class="required">*</span>
-            </label>
-            <select id="pais" v-model="selectedCountry" @change="onCountryChange" class="form-select"
-                :class="{ 'error': errors.country }" :disabled="loadingCountries">
-                <option value="">
-                    {{ loadingCountries ? 'Cargando países...' : 'Selecciona un país' }}
-                </option>
-                <option v-for="country in countries" :key="country.code" :value="country.code">
-                    {{ country.name }}
-                </option>
-            </select>
-            <span v-if="errors.country" class="error-message">{{ errors.country }}</span>
-        </div>
+        <v-row>
+            <v-col cols="12">
+                <v-select v-model="selectedCountry" :items="countries" item-title="name" item-value="code"
+                    label="País *" :rules="required ? [rules.required] : []" variant="outlined" density="comfortable"
+                    @update:model-value="onCountryChange" :loading="loadingCountries">
+                    <template #prepend-inner>
+                        <v-icon>mdi-earth</v-icon>
+                    </template>
+                </v-select>
+            </v-col>
+        </v-row>
 
         <!-- Región (solo para Chile) -->
-        <div v-if="selectedCountry === 'CL'" class="form-group">
-            <label for="region" class="form-label">
-                Región <span class="required">*</span>
-            </label>
-            <select id="region" v-model="selectedRegion" @change="onRegionChange" class="form-select"
-                :class="{ 'error': errors.region }" :disabled="loadingRegions">
-                <option value="">
-                    {{ loadingRegions ? 'Cargando regiones...' : 'Selecciona una región' }}
-                </option>
-                <option v-for="region in regions" :key="region.codigo" :value="region.codigo">
-                    {{ region.nombre }}
-                </option>
-            </select>
-            <span v-if="errors.region" class="error-message">{{ errors.region }}</span>
-        </div>
+        <v-row v-if="selectedCountry === 'CL'">
+            <v-col cols="12">
+                <v-select v-model="selectedRegion" :items="regions" item-title="nombre" item-value="codigo"
+                    label="Región *" :rules="required ? [rules.required] : []" variant="outlined" density="comfortable"
+                    @update:model-value="onRegionChange" :loading="loadingRegions" :disabled="!selectedCountry">
+                    <template #prepend-inner>
+                        <v-icon>mdi-map</v-icon>
+                    </template>
+                </v-select>
+            </v-col>
+        </v-row>
 
         <!-- Provincia (solo para Chile) -->
-        <div v-if="selectedCountry === 'CL' && selectedRegion" class="form-group">
-            <label for="provincia" class="form-label">
-                Provincia <span class="required">*</span>
-            </label>
-            <select id="provincia" v-model="selectedProvince" @change="onProvinceChange" class="form-select"
-                :class="{ 'error': errors.province }" :disabled="loadingProvinces">
-                <option value="">
-                    {{ loadingProvinces ? 'Cargando provincias...' : 'Selecciona una provincia' }}
-                </option>
-                <option v-for="province in provinces" :key="province.codigo" :value="province.codigo">
-                    {{ province.nombre }}
-                </option>
-            </select>
-            <span v-if="errors.province" class="error-message">{{ errors.province }}</span>
-        </div>
+        <v-row v-if="selectedCountry === 'CL' && selectedRegion">
+            <v-col cols="12">
+                <v-select v-model="selectedProvince" :items="provinces" item-title="nombre" item-value="codigo"
+                    label="Provincia *" :rules="required ? [rules.required] : []" variant="outlined"
+                    density="comfortable" @update:model-value="onProvinceChange" :loading="loadingProvinces"
+                    :disabled="!selectedRegion">
+                    <template #prepend-inner>
+                        <v-icon>mdi-city</v-icon>
+                    </template>
+                </v-select>
+            </v-col>
+        </v-row>
 
         <!-- Comuna (solo para Chile) -->
-        <div v-if="selectedCountry === 'CL' && selectedProvince" class="form-group">
-            <label for="comuna" class="form-label">
-                Comuna <span class="required">*</span>
-            </label>
-            <select id="comuna" v-model="selectedCommune" @change="onCommuneChange" class="form-select"
-                :class="{ 'error': errors.commune }" :disabled="loadingCommunes">
-                <option value="">
-                    {{ loadingCommunes ? 'Cargando comunas...' : 'Selecciona una comuna' }}
-                </option>
-                <option v-for="commune in communes" :key="commune.codigo" :value="commune.codigo">
-                    {{ commune.nombre }}
-                </option>
-            </select>
-            <span v-if="errors.commune" class="error-message">{{ errors.commune }}</span>
-        </div>
+        <v-row v-if="selectedCountry === 'CL' && selectedProvince">
+            <v-col cols="12">
+                <v-select v-model="selectedCommune" :items="communes" item-title="nombre" item-value="codigo"
+                    label="Comuna *" :rules="required ? [rules.required] : []" variant="outlined" density="comfortable"
+                    @update:model-value="onCommuneChange" :loading="loadingCommunes" :disabled="!selectedProvince">
+                    <template #prepend-inner>
+                        <v-icon>mdi-home-city</v-icon>
+                    </template>
+                </v-select>
+            </v-col>
+        </v-row>
 
-        <!-- Sexo -->
-        <div class="form-group">
-            <label for="sexo" class="form-label">
-                Sexo <span class="required">*</span>
-            </label>
-            <select id="sexo" v-model="selectedGender" @change="onGenderChange" class="form-select"
-                :class="{ 'error': errors.gender }">
-                <option value="">Selecciona el sexo</option>
-                <option value="masculino">Masculino</option>
-                <option value="femenino">Femenino</option>
-                <option value="otro">Otro</option>
-            </select>
-            <span v-if="errors.gender" class="error-message">{{ errors.gender }}</span>
-        </div>
+        <!-- Ciudad/Estado para otros países -->
+        <v-row v-if="selectedCountry && selectedCountry !== 'CL'">
+            <v-col cols="12">
+                <v-text-field v-model="selectedCity" label="Ciudad/Estado *" :rules="required ? [rules.required] : []"
+                    variant="outlined" density="comfortable" @update:model-value="onCityChange"
+                    :placeholder="getCityPlaceholder()">
+                    <template #prepend-inner>
+                        <v-icon>mdi-city-variant</v-icon>
+                    </template>
+                </v-text-field>
+            </v-col>
+        </v-row>
+
+        <!-- Información adicional -->
+        <v-alert v-if="selectedCountry && selectedCountry !== 'CL'" type="info" variant="tonal" class="mt-2">
+            <v-icon>mdi-information</v-icon>
+            Para países fuera de Chile, ingresa manualmente tu ciudad o estado.
+        </v-alert>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 
 // Props
 const props = defineProps({
     modelValue: {
         type: Object,
         default: () => ({
-            country: '',
+            pais: '',
             region: '',
-            province: '',
-            commune: '',
-            gender: ''
+            provincia: '',
+            comuna: '',
+            city: ''
         })
     },
     required: {
@@ -109,12 +98,18 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(['update:modelValue', 'change'])
 
+// Validation rules
+const rules = {
+    required: (value) => !!value || 'Este campo es obligatorio'
+}
+
 // Estado
-const selectedCountry = ref(props.modelValue.country || '')
+const selectedCountry = ref(props.modelValue.pais || '')
 const selectedRegion = ref(props.modelValue.region || '')
-const selectedProvince = ref(props.modelValue.province || '')
-const selectedCommune = ref(props.modelValue.commune || '')
-const selectedGender = ref(props.modelValue.gender || '')
+const selectedProvince = ref(props.modelValue.provincia || '')
+const selectedCommune = ref(props.modelValue.comuna || '')
+const selectedCity = ref(props.modelValue.city || '')
+const selectedGender = ref(props.modelValue.gender || '') // ✅ Variable agregada
 
 // Datos
 const countries = ref([])
@@ -455,19 +450,42 @@ const onCommuneChange = () => {
     validateField('commune')
 }
 
-const onGenderChange = () => {
+const onCityChange = () => {
     updateModelValue()
-    validateField('gender')
+}
+
+// Función para obtener placeholder de ciudad según país
+const getCityPlaceholder = () => {
+    const placeholders = {
+        'AR': 'Ej: Buenos Aires, Córdoba',
+        'PE': 'Ej: Lima, Arequipa',
+        'CO': 'Ej: Bogotá, Medellín',
+        'VE': 'Ej: Caracas, Valencia',
+        'EC': 'Ej: Quito, Guayaquil',
+        'BO': 'Ej: La Paz, Santa Cruz',
+        'UY': 'Ej: Montevideo, Salto',
+        'PY': 'Ej: Asunción, Ciudad del Este',
+        'BR': 'Ej: São Paulo, Rio de Janeiro',
+        'MX': 'Ej: Ciudad de México, Guadalajara'
+    }
+    // ✅ Validación defensiva para evitar errores
+    const countryCode = selectedCountry.value || ''
+    return placeholders[countryCode] || 'Ingresa tu ciudad'
 }
 
 // Actualizar modelo
 const updateModelValue = () => {
     const value = {
-        country: selectedCountry.value,
+        pais: selectedCountry.value,
+        paisNombre: countries.value.find(c => c.code === selectedCountry.value)?.name || '',
         region: selectedRegion.value,
-        province: selectedProvince.value,
-        commune: selectedCommune.value,
-        gender: selectedGender.value
+        regionNombre: regions.value.find(r => r.codigo === selectedRegion.value)?.nombre || '',
+        provincia: selectedProvince.value,
+        provinciaNombre: provinces.value.find(p => p.codigo === selectedProvince.value)?.nombre || '',
+        comuna: selectedCommune.value,
+        comunaNombre: communes.value.find(c => c.codigo === selectedCommune.value)?.nombre || '',
+        city: selectedCity.value,
+        gender: selectedGender.value // ✅ Incluir género en el modelo
     }
 
     emit('update:modelValue', value)
@@ -522,14 +540,20 @@ defineExpose({
 
 // Watchers para sincronizar con props
 watch(() => props.modelValue, (newValue) => {
-    if (newValue) {
-        selectedCountry.value = newValue.country || ''
-        selectedRegion.value = newValue.region || ''
-        selectedProvince.value = newValue.province || ''
-        selectedCommune.value = newValue.commune || ''
-        selectedGender.value = newValue.gender || ''
+    // ✅ Validación defensiva más robusta
+    if (newValue && typeof newValue === 'object') {
+        try {
+            selectedCountry.value = newValue.pais || newValue.country || ''
+            selectedRegion.value = newValue.region || ''
+            selectedProvince.value = newValue.provincia || newValue.province || ''
+            selectedCommune.value = newValue.comuna || newValue.commune || ''
+            selectedCity.value = newValue.city || ''
+            selectedGender.value = newValue.gender || ''
+        } catch (error) {
+            console.warn('⚠️ Error sincronizando props en GeoSelector:', error)
+        }
     }
-}, { deep: true })
+}, { deep: true, immediate: false })
 
 onMounted(() => {
     loadCountries()
@@ -665,5 +689,18 @@ onMounted(() => {
     .form-select {
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
     }
+}
+
+/* ✅ VUETIFY COMPATIBILITY */
+.v-select .v-icon {
+    color: var(--color-turquesa);
+}
+
+.v-text-field .v-icon {
+    color: var(--color-turquesa);
+}
+
+.v-alert {
+    font-size: 0.875rem;
 }
 </style>

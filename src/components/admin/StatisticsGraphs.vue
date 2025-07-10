@@ -300,36 +300,35 @@ onMounted(() => {
 }
 
 .graph-card {
-    background: white;
+    background: var(--color-surface);
     padding: 1.5rem;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e9ecef;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+    transition: box-shadow 0.2s ease;
 }
 
 .graph-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-lg);
 }
 
 .graph-card h3 {
     margin: 0 0 1.5rem 0;
-    color: #2c3e50;
+    color: var(--color-text);
     font-size: 1.2rem;
     font-weight: 600;
-    border-bottom: 2px solid #f8f9fa;
+    border-bottom: 2px solid var(--color-border);
     padding-bottom: 0.5rem;
 }
 
 .no-data {
     text-align: center;
-    color: #999;
+    color: var(--color-text-muted);
     font-style: italic;
     padding: 3rem;
-    background: #f8f9fa;
+    background: var(--color-surface-variant);
     border-radius: 8px;
-    border: 2px dashed #dee2e6;
+    border: 2px dashed var(--color-border);
 }
 
 /* Estilos para bancos por región */
@@ -341,14 +340,14 @@ onMounted(() => {
 .region-section {
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: #f8f9fa;
+    background: var(--color-surface-variant);
     border-radius: 8px;
-    border-left: 4px solid #00cccc;
+    border-left: 4px solid var(--color-turquesa);
 }
 
 .region-title {
     margin: 0 0 1rem 0;
-    color: #2c3e50;
+    color: var(--color-text);
     font-size: 1rem;
     font-weight: 600;
 }
@@ -373,26 +372,26 @@ onMounted(() => {
     align-items: center;
     gap: 1rem;
     padding: 0.75rem;
-    background: #f8f9fa;
+    background: var(--color-surface-variant);
     border-radius: 6px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease;
 }
 
 .region-visit-item:hover {
-    background: #e9ecef;
+    background: var(--color-surface);
 }
 
 .region-name {
     min-width: 150px;
     font-weight: 500;
-    color: #2c3e50;
+    color: var(--color-text);
 }
 
 .visit-count {
     min-width: 80px;
     text-align: right;
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--color-text-secondary);
 }
 
 /* Estilos comunes para items */
@@ -402,30 +401,30 @@ onMounted(() => {
     align-items: center;
     gap: 1rem;
     padding: 0.75rem;
-    background: white;
+    background: var(--color-surface);
     border-radius: 6px;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
+    border: 1px solid var(--color-border);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .bank-item:hover,
 .device-item:hover {
-    background: #f8f9fa;
-    border-color: #00cccc;
+    background: var(--color-surface-variant);
+    border-color: var(--color-turquesa);
 }
 
 .bank-name,
 .device-name {
     min-width: 120px;
     font-weight: 500;
-    color: #2c3e50;
+    color: var(--color-text);
 }
 
 .bank-count {
     min-width: 60px;
     text-align: right;
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--color-text-secondary);
 }
 
 .device-icon {
@@ -436,7 +435,7 @@ onMounted(() => {
     min-width: 50px;
     text-align: right;
     font-weight: 600;
-    color: #00cccc;
+    color: var(--color-turquesa);
 }
 
 .progress-bar {

@@ -73,6 +73,11 @@
                 </div>
             </div>
         </div>
+
+        <!-- ✅ NUEVO: Estado de Seguridad -->
+        <div class="security-section">
+            <SecurityStatus />
+        </div>
     </div>
 </template>
 
@@ -80,6 +85,7 @@
 import { ref, onMounted } from 'vue'
 import { bankAccountService } from '@/services/bankAccountService'
 import { metricsService } from '@/services/metricsService'
+import SecurityStatus from '@/components/admin/SecurityStatus.vue'
 
 const stats = ref({
     totalUsers: 0,
@@ -157,19 +163,25 @@ onMounted(() => {
 }
 
 .stat-card {
-    background: white;
+    background: var(--color-surface);
     border-radius: 8px;
     padding: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
     display: flex;
     align-items: center;
     gap: 1rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
 }
 
 .stat-icon {
     font-size: 2.5rem;
-    background: #3498db;
-    color: white;
+    background: var(--color-turquesa);
+    color: var(--color-text);
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -180,7 +192,7 @@ onMounted(() => {
 
 .stat-content h3 {
     margin: 0 0 0.5rem 0;
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -189,19 +201,20 @@ onMounted(() => {
     margin: 0;
     font-size: 2rem;
     font-weight: bold;
-    color: #2c3e50;
+    color: var(--color-text);
 }
 
 .recent-activity {
-    background: white;
+    background: var(--color-surface);
     border-radius: 8px;
     padding: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
 }
 
 .recent-activity h3 {
     margin: 0 0 1rem 0;
-    color: #2c3e50;
+    color: var(--color-text);
 }
 
 .activity-list {
@@ -215,37 +228,38 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem;
-    background: #f8f9fa;
+    background: var(--color-surface-variant);
     border-radius: 4px;
 }
 
 .activity-time {
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
     font-size: 0.8rem;
 }
 
 .activity-text {
-    color: #2c3e50;
+    color: var(--color-text);
 }
 
 .loading-state,
 .error-state {
     text-align: center;
     padding: 2rem;
-    background: white;
+    background: var(--color-surface);
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
     margin: 2rem 0;
 }
 
 .loading-state p {
-    color: #3498db;
+    color: var(--color-turquesa);
     font-size: 1.1rem;
     margin: 0;
 }
 
 .error-state p {
-    color: #e74c3c;
+    color: var(--color-error);
     font-size: 1.1rem;
     margin: 0 0 1rem 0;
 }
@@ -263,5 +277,12 @@ onMounted(() => {
 
 .retry-btn:hover {
     background: #2980b9;
+}
+
+/* ✅ NUEVO: Estilos para sección de seguridad */
+.security-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>

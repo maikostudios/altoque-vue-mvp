@@ -1180,3 +1180,26 @@ input:checked + .slider:before {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* ✅ NUEVO: Estilos para UserProfileCard y DynamicBanners */
+.profile-section {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Responsive para nuevos componentes */
+@media (max-width: 768px) {
+    .profile-section {
+        margin-bottom: 1rem;
+    }
+
+    .dashboard-header {
+        gap: 1rem;
+    }
+}

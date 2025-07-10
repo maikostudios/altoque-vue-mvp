@@ -9,30 +9,31 @@
             <a href="#contacto" class="nav-link">Contacto</a>
         </div>
         <div class="nav-actions">
-            <router-link to="/login" class="btn-login">Iniciar Sesión</router-link>
-            <button class="btn-register">Regístrate</button>
+            <UserNavMenu />
         </div>
-        
+
         <!-- Mobile Menu Button -->
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
             <span></span>
             <span></span>
             <span></span>
         </button>
-        
+
         <!-- Mobile Menu -->
         <div class="mobile-menu" :class="{ active: mobileMenuOpen }">
             <a href="#inicio" class="mobile-nav-link" @click="closeMobileMenu">Inicio</a>
             <a href="#quienes-somos" class="mobile-nav-link" @click="closeMobileMenu">Quiénes Somos</a>
             <a href="#contacto" class="mobile-nav-link" @click="closeMobileMenu">Contacto</a>
-            <router-link to="/login" class="mobile-btn-login" @click="closeMobileMenu">Iniciar Sesión</router-link>
-            <button class="mobile-btn-register" @click="closeMobileMenu">Regístrate</button>
+            <div class="mobile-user-menu" @click="closeMobileMenu">
+                <UserNavMenu />
+            </div>
         </div>
     </nav>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import UserNavMenu from '@/components/navigation/UserNavMenu.vue'
 
 const mobileMenuOpen = ref(false)
 
@@ -92,7 +93,8 @@ const closeMobileMenu = () => {
     gap: 12px;
 }
 
-.btn-login, .btn-register {
+.btn-login,
+.btn-register {
     padding: 8px 22px;
     font-size: 1rem;
     border-radius: 8px;
@@ -110,7 +112,7 @@ const closeMobileMenu = () => {
 .btn-login {
     background: #1c94e0;
     color: #fff;
-    box-shadow: 0 2px 16px 0 rgba(28,148,224,0.18);
+    box-shadow: 0 2px 16px 0 rgba(28, 148, 224, 0.18);
 }
 
 .btn-login:hover {
@@ -121,7 +123,7 @@ const closeMobileMenu = () => {
 .btn-register {
     background: #00cccc;
     color: #fff;
-    box-shadow: 0 2px 16px 0 rgba(0,204,204,0.12);
+    box-shadow: 0 2px 16px 0 rgba(0, 204, 204, 0.12);
 }
 
 .btn-register:hover {
@@ -179,7 +181,8 @@ const closeMobileMenu = () => {
     color: #00cccc;
 }
 
-.mobile-btn-login, .mobile-btn-register {
+.mobile-btn-login,
+.mobile-btn-register {
     padding: 12px 32px;
     font-size: 1.2rem;
     border-radius: 8px;
@@ -207,20 +210,20 @@ const closeMobileMenu = () => {
     .navbar {
         padding: 16px 4vw;
     }
-    
+
     .logo {
         font-size: 1.5rem;
     }
-    
+
     .nav-links,
     .nav-actions {
         display: none;
     }
-    
+
     .mobile-menu-btn {
         display: flex;
     }
-    
+
     .mobile-menu {
         display: flex;
     }
@@ -230,18 +233,19 @@ const closeMobileMenu = () => {
     .navbar {
         padding: 20px 6vw;
     }
-    
+
     .nav-links {
         gap: 24px;
     }
-    
+
     .nav-link {
         font-size: 0.9rem;
     }
-    
-    .btn-login, .btn-register {
-        padding: 6px 18px;
-        font-size: 0.9rem;
+
+    .mobile-user-menu {
+        padding: 1rem 0;
+        display: flex;
+        justify-content: center;
     }
 }
 </style>

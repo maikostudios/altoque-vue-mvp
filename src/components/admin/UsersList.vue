@@ -101,6 +101,7 @@
                         <th>Plan</th>
                         <th>Tarjetas por Banco</th>
                         <th>Registro</th>
+                        <th>Verificación</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -183,6 +184,29 @@
                             </div>
                         </td>
 
+                        <td class="verification-info">
+                            <div class="verification-status">
+                                <select :value="usuario.idVerificationStatus || 'pending'"
+                                    @change="updateVerificationStatus(usuario, $event.target.value)"
+                                    :disabled="updating" class="verification-select">
+                                    <option value="auto_approved">✅ Auto-aprobado</option>
+                                    <option value="pending">⏳ Pendiente</option>
+                                    <option value="approved">✅ Aprobado</option>
+                                    <option value="rejected">❌ Rechazado</option>
+                                </select>
+                                <div v-if="usuario.verifiedBadge" class="verified-badge-indicator">
+                                    <span class="badge-verified" title="Badge Verificado">✓ Badge</span>
+                                </div>
+                                <div v-else-if="usuario.isPremium || usuario.esPremium" class="badge-actions">
+                                    <button @click="toggleVerifiedBadge(usuario)" :disabled="updating"
+                                        class="btn-badge-toggle"
+                                        :title="usuario.verifiedBadge ? 'Quitar Badge Verificado' : 'Otorgar Badge Verificado'">
+                                        {{ usuario.verifiedBadge ? '🛡️ Quitar Badge' : '🛡️ Dar Badge' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+
                         <td class="status-info">
                             <div class="status-toggle">
                                 <label class="toggle-switch">
@@ -218,6 +242,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { db } from '@/firebase'
 import { collection, getDocs, query, where, updateDoc, doc } from 'firebase/firestore'
+import { httpsCallable } from 'firebase/functions'
+import { functions } from '@/firebase'
 import UserDetailModal from './UserDetailModal.vue'
 import { migrateUserRoles, checkRoleStatus } from '@/utils/migrateRoles'
 
@@ -519,6 +545,83 @@ const toggleUserStatus = async (usuario) => {
     }
 }
 
+// Función para actualizar estado de verificación usando Cloud Function
+const updateVerificationStatus = async (usuario, newStatus) => {
+    try {
+        updating.value = true
+
+        // Usar Cloud Function para mantener logs y seguridad
+        const updateIdVerificationStatus = httpsCallable(functions, 'updateIdVerificationStatus')
+
+        const result = await updateIdVerificationStatus({
+            userId: usuario.id,
+            status: newStatus,
+            notes: `Estado cambiado manualmente por admin desde lista de usuarios`
+        })
+
+        // Actualizar localmente
+        usuario.idVerificationStatus = newStatus
+
+        console.log(`✅ Estado de verificación actualizado: ${usuario.email} → ${newStatus}`)
+
+        // Mostrar confirmación
+        const statusLabels = {
+            'auto_approved': 'Auto-aprobado',
+            'pending': 'Pendiente',
+            'approved': 'Aprobado',
+            'rejected': 'Rechazado'
+        }
+        alert(`Estado de verificación cambiado a: ${statusLabels[newStatus]}`)
+
+    } catch (error) {
+        console.error('Error actualizando estado de verificación:', error)
+
+        // Mostrar error específico si está disponible
+        let errorMessage = 'Error al actualizar el estado de verificación'
+        if (error.code === 'functions/permission-denied') {
+            errorMessage = 'No tienes permisos para realizar esta acción'
+        } else if (error.message) {
+            errorMessage = error.message
+        }
+
+        alert(errorMessage)
+    } finally {
+        updating.value = false
+    }
+}
+
+// Función para otorgar/quitar badge verificado
+const toggleVerifiedBadge = async (usuario) => {
+    try {
+        updating.value = true
+
+        const newBadgeStatus = !usuario.verifiedBadge
+
+        const updateData = {
+            verifiedBadge: newBadgeStatus,
+            verifiedBadgeUpdatedAt: new Date(),
+            verifiedBadgeUpdatedBy: 'admin', // TODO: usar el UID del admin actual
+            fechaActualizacion: new Date()
+        }
+
+        await updateDoc(doc(db, 'users', usuario.id), updateData)
+
+        // Actualizar localmente
+        usuario.verifiedBadge = newBadgeStatus
+
+        console.log(`✅ Badge verificado ${newBadgeStatus ? 'otorgado' : 'removido'}: ${usuario.email}`)
+
+        // Mostrar confirmación
+        alert(`Badge verificado ${newBadgeStatus ? 'otorgado' : 'removido'} exitosamente`)
+
+    } catch (error) {
+        console.error('Error actualizando badge verificado:', error)
+        alert('Error al actualizar el badge verificado')
+    } finally {
+        updating.value = false
+    }
+}
+
 const toggleSortOrder = () => {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
 }
@@ -549,6 +652,40 @@ const getRoleLabel = (role) => {
         'usuario': '👤 Usuario'
     }
     return labels[role] || '❓ Sin rol'
+}
+
+// Funciones para estados de verificación
+const getVerificationClass = (status) => {
+    const classes = {
+        'auto_approved': 'auto-approved',
+        'pending': 'pending',
+        'approved': 'approved',
+        'verified': 'verified',
+        'rejected': 'rejected'
+    }
+    return classes[status] || 'unknown'
+}
+
+const getVerificationIcon = (status) => {
+    const icons = {
+        'auto_approved': '✅',
+        'pending': '⏳',
+        'approved': '✅',
+        'verified': '🛡️',
+        'rejected': '❌'
+    }
+    return icons[status] || '❓'
+}
+
+const getVerificationLabel = (status) => {
+    const labels = {
+        'auto_approved': 'Auto-aprobado',
+        'pending': 'Pendiente',
+        'approved': 'Aprobado',
+        'verified': 'Verificado',
+        'rejected': 'Rechazado'
+    }
+    return labels[status] || 'Sin estado'
 }
 
 const editUser = (usuario) => {

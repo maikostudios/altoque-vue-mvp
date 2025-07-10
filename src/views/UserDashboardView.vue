@@ -1,29 +1,19 @@
 <template>
     <div class="user-dashboard">
-        <!-- Header del usuario -->
+        <!-- ✅ NUEVO: Banners Dinámicos Contextuales -->
+        <DynamicBanners :user-info="userInfo" :card-count="tarjetas.length" :show-limit-reached="showLimitReachedBanner"
+            @complete-onboarding="handleCompleteOnboarding" @upgrade-to-premium="handleUpgradeToPremium"
+            @learn-more="handleLearnMore" @explore-premium="handleExplorePremium" @renew-premium="handleRenewPremium" />
+
+        <!-- ✅ NUEVO: Header con UserProfileCard -->
         <div class="dashboard-header">
-            <div class="user-welcome">
-                <div class="user-avatar">
-                    <div class="avatar-placeholder">
-                        {{ userInfo.nombre?.charAt(0) || '?' }}{{ userInfo.apellido?.charAt(0) || '' }}
-                    </div>
-                </div>
-                <div class="welcome-content">
-                    <h1>¡Hola, {{ userInfo.nombre }}!</h1>
-                    <p class="user-plan">
-                        Plan {{ userInfo.tipoPlan || 'Gratuito' }}
-                        <span v-if="userInfo.esPremium" class="premium-badge">⭐ Premium</span>
-                    </p>
-                    <p v-if="userInfo.esPremium && diasRestantesPremium > 0" class="premium-expiry">
-                        {{ diasRestantesPremium }} días restantes
-                    </p>
-                    <p v-else-if="userInfo.esPremium && diasRestantesPremium <= 0" class="premium-expired">
-                        ⚠️ Plan Premium vencido
-                    </p>
-                </div>
+            <div class="profile-section">
+                <UserProfileCard :user-info="userInfo" :user-metrics="userMetrics" :card-count="tarjetas.length"
+                    @edit-profile="handleEditProfile" @view-qr="handleViewQR" />
             </div>
+
             <div class="header-actions">
-                <button @click="showCreateCardModal = true" class="btn btn-primary" :disabled="!puedeCrearTarjeta">
+                <button @click="handleCreateCard" class="btn btn-primary" :disabled="!puedeCrearTarjeta">
                     ➕ Nueva Tarjeta
                 </button>
                 <button @click="showQRModal = true" class="btn btn-turquesa">
@@ -31,6 +21,13 @@
                 </button>
                 <button @click="refreshData" class="btn btn-secondary" :disabled="loading">
                     🔄 Actualizar
+                </button>
+                <button v-if="isAdmin" @click="showConversionTester = true" class="btn btn-info"
+                    title="Testing de Conversión - Etapa 5">
+                    🧪 Testing
+                </button>
+                <button @click="showFeedbackModal = true" class="btn btn-secondary" title="Enviar Comentarios">
+                    💬 Feedback
                 </button>
             </div>
         </div>
@@ -116,7 +113,7 @@
                     <div class="empty-icon">💳</div>
                     <h3>No tienes tarjetas aún</h3>
                     <p>Crea tu primera tarjeta bancaria para empezar a recibir transferencias</p>
-                    <button @click="showCreateCardModal = true" class="btn btn-primary">
+                    <button @click="handleCreateCard" class="btn btn-primary">
                         Crear Primera Tarjeta
                     </button>
                 </div>
@@ -267,6 +264,10 @@
                 <div class="config-header">
                     <h3>⚙️ Configuración de Cuenta</h3>
                 </div>
+
+                <!-- ✅ NUEVO: Badge Verificado Section -->
+                <VerifiedBadgeSection :user-info="userInfo" @upgrade-to-premium="handleUpgradeToPremium"
+                    @verification-submitted="handleVerificationSubmitted" />
 
                 <div class="config-grid">
                     <!-- Información Personal -->
@@ -447,6 +448,26 @@
                 </form>
             </div>
         </div>
+
+        <!-- ✅ NUEVO: Modal de Información de Usuario (Onboarding) -->
+        <UserInfoModal v-model="showUserInfoModal" @completed="handleOnboardingCompleted"
+            @error="handleOnboardingError" />
+
+        <!-- ✅ NUEVO: Modal de Planes Premium -->
+        <PremiumPlansModal v-model="showPremiumPlansModal" :user-info="userInfo"
+            @contact-whatsapp="handleContactWhatsApp" @contact-support="handleContactSupport"
+            @manage-premium="handleManagePremium" />
+
+        <!-- ✅ NUEVO: Modal de Bloqueo de Funciones -->
+        <FeatureLockModal v-model="showFeatureLockModal" :feature-type="lockedFeatureType"
+            :current-usage="tarjetas.length" :current-limit="userInfo.limiteTarjetas || 1"
+            @upgrade-to-premium="handleUpgradeToPremium" @learn-more="handleLearnMore" />
+
+        <!-- ✅ NUEVO: Modal de Testing de Conversión (Solo para Admins) -->
+        <ConversionTester v-if="isAdmin" v-model="showConversionTester" />
+
+        <!-- ✅ ETAPA 6: Modal de Feedback de Usuario -->
+        <UserFeedbackModal v-model="showFeedbackModal" @feedback-sent="handleFeedbackSent" />
     </div>
 </template>
 
@@ -458,6 +479,18 @@ import { doc, getDoc, collection, query, where, getDocs, updateDoc, addDoc, dele
 import BankCardForm from '@/components/user/BankCardForm.vue'
 import QRModal from '@/components/user/QRModal.vue'
 import GeoSelector from '@/components/forms/GeoSelector.vue'
+import UserInfoModal from '@/components/auth/UserInfoModal.vue'
+import UserProfileCard from '@/components/user/UserProfileCard.vue'
+import DynamicBanners from '@/components/user/DynamicBanners.vue'
+import VerifiedBadgeSection from '@/components/user/VerifiedBadgeSection.vue'
+import PremiumPlansModal from '@/components/premium/PremiumPlansModal.vue'
+import FeatureLockModal from '@/components/premium/FeatureLockModal.vue'
+import ConversionTester from '@/components/testing/ConversionTester.vue'
+import UserFeedbackModal from '@/components/feedback/UserFeedbackModal.vue'
+// ✅ ETAPA 6: Servicios de monitoreo
+import { performanceService } from '@/services/performanceService'
+import { crashlyticsService } from '@/services/crashlyticsService'
+import { budgetMonitoringService } from '@/services/budgetMonitoringService'
 import { incrementTransferCounter } from '@/store/transferCounter'
 import { metricsService } from '@/services/metricsService'
 import { analyticsService } from '@/services/analyticsService'
@@ -470,6 +503,13 @@ const showCreateCardModal = ref(false)
 const showQRModal = ref(false)
 const showEditProfileModal = ref(false)
 const showChangePasswordModal = ref(false)
+const showUserInfoModal = ref(false) // ✅ NUEVO: Modal de onboarding
+const showLimitReachedBanner = ref(false) // ✅ NUEVO: Banner de límite alcanzado
+const showPremiumPlansModal = ref(false) // ✅ NUEVO: Modal de planes Premium
+const showFeatureLockModal = ref(false) // ✅ NUEVO: Modal de bloqueo de funciones
+const lockedFeatureType = ref('cards') // ✅ NUEVO: Tipo de función bloqueada
+const showConversionTester = ref(false) // ✅ NUEVO: Modal de testing de conversión
+const showFeedbackModal = ref(false) // ✅ ETAPA 6: Modal de feedback de usuario
 const editingCard = ref(null)
 const periodoEstadisticas = ref(30)
 const loadingStats = ref(false)
@@ -488,6 +528,13 @@ const userInfo = ref({
 
 // Tarjetas del usuario
 const tarjetas = ref([])
+
+// ✅ NUEVO: Métricas del usuario para UserProfileCard
+const userMetrics = ref({
+    visitasPagina: 0,
+    datosCopiadosCount: 0,
+    ultimaVisita: null
+})
 
 // Estadísticas
 const estadisticas = ref({
@@ -541,6 +588,10 @@ const passwordForm = ref({
 })
 
 // Computed
+const isAdmin = computed(() => {
+    return userInfo.value?.rol === 'admin' || userInfo.value?.role === 'admin'
+})
+
 const diasRestantesPremium = computed(() => {
     if (!userInfo.value.esPremium || !userInfo.value.fechaVencimientoPremium) return 0
 
@@ -566,6 +617,13 @@ const loadUserData = async () => {
         const userDoc = await getDoc(doc(db, 'users', authStore.user.uid))
         if (userDoc.exists()) {
             userInfo.value = { ...userDoc.data() }
+
+            // ✅ NUEVO: Verificar si necesita completar onboarding
+            if (!userInfo.value.onboardingCompleted) {
+                console.log('📝 Usuario necesita completar onboarding')
+                showUserInfoModal.value = true
+                return // No cargar más datos hasta completar onboarding
+            }
         }
 
         // Cargar tarjetas del usuario
@@ -1106,8 +1164,203 @@ const changePassword = async () => {
     }
 }
 
+// ✅ NUEVO: Funciones para manejar onboarding
+const handleOnboardingCompleted = async (userData) => {
+    try {
+        console.log('✅ Onboarding completado:', userData)
+
+        // Aquí se llamaría a la Cloud Function para completar el onboarding
+        // Por ahora, cerramos el modal y recargamos datos
+        showUserInfoModal.value = false
+
+        // Recargar datos del usuario
+        await loadUserData()
+
+        // Mostrar notificación de éxito
+        notificaciones.value.push({
+            id: Date.now(),
+            type: 'success',
+            icon: '🎉',
+            title: '¡Bienvenido a De Una!',
+            message: 'Tu información ha sido guardada correctamente. Ya puedes empezar a usar todas las funciones.'
+        })
+
+    } catch (error) {
+        console.error('❌ Error completando onboarding:', error)
+        handleOnboardingError(error)
+    }
+}
+
+const handleOnboardingError = (error) => {
+    console.error('❌ Error en onboarding:', error)
+
+    notificaciones.value.push({
+        id: Date.now(),
+        type: 'error',
+        icon: '❌',
+        title: 'Error al guardar información',
+        message: 'Hubo un problema al guardar tu información. Por favor, inténtalo de nuevo.'
+    })
+}
+
+// ✅ NUEVO: Funciones para manejar eventos de banners y perfil
+const handleCompleteOnboarding = () => {
+    showUserInfoModal.value = true
+}
+
+const handleUpgradeToPremium = () => {
+    // Mostrar modal de planes Premium
+    console.log('🚀 Mostrando planes Premium...')
+    showPremiumPlansModal.value = true
+}
+
+const handleVerificationSubmitted = async (verificationData) => {
+    try {
+        console.log('📤 Procesando verificación de badge:', verificationData)
+
+        // TODO: Implementar subida de archivos a CDN y crear solicitud de verificación
+        // Por ahora solo actualizamos el estado local
+
+        // Actualizar estado en Firestore
+        await updateDoc(doc(db, 'users', authStore.user.uid), {
+            verificationBadgeStatus: 'pending',
+            verificationBadgeSubmittedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        })
+
+        // Actualizar estado local
+        userInfo.value.verificationBadgeStatus = 'pending'
+
+        console.log('✅ Verificación de badge enviada exitosamente')
+
+    } catch (error) {
+        console.error('❌ Error procesando verificación de badge:', error)
+        alert('❌ Error enviando verificación. Inténtalo nuevamente.')
+    }
+}
+
+const handleLearnMore = () => {
+    // Mostrar modal de planes Premium
+    console.log('📖 Mostrando información de planes...')
+    showPremiumPlansModal.value = true
+}
+
+const handleExplorePremium = () => {
+    // Mostrar funciones Premium disponibles
+    console.log('🔍 Explorando funciones Premium...')
+    // TODO: Implementar tour de funciones
+}
+
+const handleRenewPremium = () => {
+    // Proceso de renovación Premium
+    console.log('🔄 Iniciando renovación Premium...')
+    // TODO: Implementar proceso de renovación
+}
+
+const handleEditProfile = () => {
+    showEditProfileModal.value = true
+}
+
+const handleViewQR = () => {
+    showQRModal.value = true
+}
+
+// ✅ NUEVO: Funciones para manejar eventos de Premium
+const handleContactWhatsApp = () => {
+    console.log('📱 Contacto por WhatsApp iniciado')
+    // Analytics: registrar conversión de WhatsApp
+}
+
+const handleContactSupport = () => {
+    console.log('📧 Contacto por soporte iniciado')
+    // Redirigir a página de soporte o abrir modal de contacto
+}
+
+const handleManagePremium = () => {
+    console.log('⚙️ Gestión de Premium')
+    // Mostrar opciones de gestión Premium
+}
+
+// ✅ NUEVO: Función para verificar límites y mostrar bloqueo
+const checkFeatureLimit = (featureType) => {
+    const isPremium = userInfo.value.isPremium || userInfo.value.esPremium
+
+    if (featureType === 'cards' && !isPremium) {
+        const currentCards = tarjetas.value.length
+        const limit = userInfo.value.limiteTarjetas || 1
+
+        if (currentCards >= limit) {
+            lockedFeatureType.value = 'cards'
+            showFeatureLockModal.value = true
+            showLimitReachedBanner.value = true
+            return false // Bloquear acción
+        }
+    }
+
+    return true // Permitir acción
+}
+
+// ✅ NUEVO: Función para manejar creación de tarjetas con bloqueo
+const handleCreateCard = () => {
+    if (checkFeatureLimit('cards')) {
+        editingCard.value = null
+        showCreateCardModal.value = true
+    }
+}
+
+// ✅ ETAPA 6: Función para manejar feedback de usuario
+const handleFeedbackSent = (result) => {
+    notificaciones.value.push({
+        id: Date.now(),
+        type: result.type,
+        icon: result.type === 'success' ? '✅' : '❌',
+        title: result.type === 'success' ? 'Feedback Enviado' : 'Error al Enviar',
+        message: result.message
+    })
+
+    // Auto-remover notificación después de 5 segundos
+    setTimeout(() => {
+        const index = notificaciones.value.findIndex(n => n.id === Date.now())
+        if (index > -1) {
+            notificaciones.value.splice(index, 1)
+        }
+    }, 5000)
+}
+
 onMounted(() => {
-    loadUserData()
+    // ✅ ETAPA 6: Iniciar monitoreo de performance
+    const dashboardTrace = performanceService.startUserDashboardTrace()
+
+    // Configurar usuario para crashlytics
+    if (authStore.user) {
+        crashlyticsService.setUser(authStore.user.uid, authStore.user.email, {
+            role: userInfo.value?.rol || 'usuario',
+            plan: userInfo.value?.isPremium ? 'premium' : 'free'
+        })
+    }
+
+    loadUserData().then(() => {
+        // ✅ ETAPA 6: Finalizar traza de performance
+        performanceService.stopTrace('user_dashboard_load', {
+            cards_count: tarjetas.value.length,
+            load_success: 1
+        })
+
+        // Incrementar contador de lecturas de Firestore
+        budgetMonitoringService.incrementFirestoreReads(3) // Usuario + tarjetas + métricas
+
+    }).catch(error => {
+        // ✅ ETAPA 6: Registrar error
+        crashlyticsService.recordError('dashboard_load_error', error, {
+            component: 'UserDashboardView',
+            action: 'loadUserData'
+        }, 'high')
+
+        performanceService.stopTrace('user_dashboard_load', {
+            load_success: 0,
+            error_count: 1
+        })
+    })
 })
 </script>
 

@@ -20,6 +20,13 @@
                     </button>
                 </li>
                 <li>
+                    <button @click="showPerformanceDashboard" class="nav-item performance-btn"
+                        :title="isCollapsed ? 'Performance Monitor' : ''">
+                        <i class="nav-icon">🔍</i>
+                        <span v-show="!isCollapsed" class="nav-text">Performance</span>
+                    </button>
+                </li>
+                <li>
                     <button @click="$emit('changeView', 'usuarios')" class="nav-item"
                         :class="{ active: currentView === 'usuarios' }" :title="isCollapsed ? 'Crear Usuario' : ''">
                         <i class="nav-icon">➕</i>
@@ -65,6 +72,22 @@
                     </button>
                 </li>
                 <li>
+                    <button @click="$emit('changeView', 'verificacion-ids')" class="nav-item"
+                        :class="{ active: currentView === 'verificacion-ids' }"
+                        :title="isCollapsed ? 'Verificación de IDs' : ''">
+                        <i class="nav-icon">🛡️</i>
+                        <span v-show="!isCollapsed" class="nav-text">Verificación de IDs</span>
+                    </button>
+                </li>
+                <li>
+                    <button @click="$emit('changeView', 'audit-logs')" class="nav-item"
+                        :class="{ active: currentView === 'audit-logs' }"
+                        :title="isCollapsed ? 'Logs de Auditoría' : ''">
+                        <i class="nav-icon">📋</i>
+                        <span v-show="!isCollapsed" class="nav-text">Logs de Auditoría</span>
+                    </button>
+                </li>
+                <li>
                     <button @click="$emit('changeView', 'tarjetas')" class="nav-item"
                         :class="{ active: currentView === 'tarjetas' }" :title="isCollapsed ? 'Cuentas Bancarias' : ''">
                         <i class="nav-icon">💳</i>
@@ -95,11 +118,15 @@
                 </li>
             </ul>
         </nav>
+
+        <!-- ✅ ETAPA 6: Performance Dashboard Modal -->
+        <PerformanceDashboard v-model="showPerformanceModal" />
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import PerformanceDashboard from '@/components/monitoring/PerformanceDashboard.vue'
 
 defineProps({
     currentView: {
@@ -113,6 +140,9 @@ defineEmits(['changeView'])
 // Estado del sidebar colapsado
 const isCollapsed = ref(false)
 
+// ✅ ETAPA 6: Performance Dashboard
+const showPerformanceModal = ref(false)
+
 // Función para alternar el estado del sidebar
 const toggleSidebar = () => {
     isCollapsed.value = !isCollapsed.value
@@ -123,6 +153,11 @@ const toggleSidebar = () => {
     document.dispatchEvent(new CustomEvent('sidebar-toggle', {
         detail: { collapsed: isCollapsed.value }
     }))
+}
+
+// ✅ ETAPA 6: Función para mostrar Performance Dashboard
+const showPerformanceDashboard = () => {
+    showPerformanceModal.value = true
 }
 
 // Cargar preferencia guardada al montar el componente

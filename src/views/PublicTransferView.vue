@@ -29,6 +29,12 @@
 
         <!-- Success State -->
         <div v-else-if="userInfo && tarjetas.length > 0" class="transfer-content">
+            <!-- ✅ NUEVO: Publicidad de Maiko Studios (Top Banner) -->
+            <div class="ads-section top-ads">
+                <MaikoStudiosAds placement="banner" :context="adContext" :user-info="userInfo"
+                    @ad-clicked="handleAdClick" @ad-viewed="handleAdView" />
+            </div>
+
             <!-- Header del usuario -->
             <div class="user-header">
                 <div class="user-avatar">
@@ -89,6 +95,19 @@
                         </a>
                     </div>
                 </div>
+            </div>
+
+            <!-- ✅ NUEVO: Publicidad de Maiko Studios (Bottom Banner) -->
+            <div class="ads-section bottom-ads">
+                <MaikoStudiosAds placement="footer" :context="adContext" :user-info="userInfo"
+                    @ad-clicked="handleAdClick" @ad-viewed="handleAdView" />
+            </div>
+
+            <!-- ✅ ETAPA 6: Google AdSense (Solo en producción) -->
+            <div v-if="showAdSense" class="ads-section adsense-ads">
+                <AdSenseUnit ad-unit-id="1234567890" publisher-id="ca-pub-1234567890123456" format="horizontal"
+                    size="responsive" placement="footer" @ad-loaded="handleAdSenseLoaded" @ad-error="handleAdSenseError"
+                    @ad-impression="handleAdSenseImpression" @ad-click="handleAdSenseClick" />
             </div>
         </div>
 
@@ -185,6 +204,12 @@ import { collection, query, where, getDocs, doc, updateDoc, increment } from 'fi
 import { incrementTransferCounter } from '@/store/transferCounter'
 import { metricsService } from '@/services/metricsService'
 import { analyticsService } from '@/services/analyticsService'
+import MaikoStudiosAds from '@/components/ads/MaikoStudiosAds.vue'
+import AdSenseUnit from '@/components/ads/AdSenseUnit.vue'
+// ✅ ETAPA 6: Servicios de monitoreo
+import { performanceService } from '@/services/performanceService'
+import { crashlyticsService } from '@/services/crashlyticsService'
+import { budgetMonitoringService } from '@/services/budgetMonitoringService'
 
 const route = useRoute()
 const router = useRouter()
@@ -194,6 +219,16 @@ const userInfo = ref(null)
 const tarjetas = ref([])
 const selectedCard = ref(null)
 const tokenCaptured = ref(false) // Para evitar loops
+
+// ✅ NUEVO: Variables para publicidad
+const adContext = ref({
+    industry: null,
+    keywords: [],
+    userType: 'visitor'
+})
+
+// ✅ ETAPA 6: Variables para AdSense
+const showAdSense = ref(process.env.NODE_ENV === 'production')
 
 // Computed
 const tarjetasActivas = computed(() => {
@@ -411,41 +446,71 @@ const copyToClipboard = async (text) => {
 }
 
 const copyAllData = async () => {
-    // Formato específico para formularios bancarios
-    const formatRut = (rut) => {
-        if (!rut) return ''
-        // Formatear RUT con puntos y guión
-        return rut.replace(/^(\d{1,2})(\d{3})(\d{3})([kK\d])$/, '$1.$2.$3‑$4')
-    }
+    // ✅ ETAPA 6: Iniciar monitoreo de performance
+    const copyTrace = performanceService.startCopyDataTrace(1)
 
-    const formatAccountNumber = (account) => {
-        if (!account) return ''
-        // Formatear número de cuenta con espacios cada 3 dígitos
-        return account.replace(/(\d{1,3})(?=(\d{3})+(?!\d))/g, '$1 ')
-    }
+    try {
+        // Formato específico para formularios bancarios
+        const formatRut = (rut) => {
+            if (!rut) return ''
+            // Formatear RUT con puntos y guión
+            return rut.replace(/^(\d{1,2})(\d{3})(\d{3})([kK\d])$/, '$1.$2.$3‑$4')
+        }
 
-    const allData = `Nombre: ${selectedCard.value.nombreTitular.toUpperCase()}
+        const formatAccountNumber = (account) => {
+            if (!account) return ''
+            // Formatear número de cuenta con espacios cada 3 dígitos
+            return account.replace(/(\d{1,3})(?=(\d{3})+(?!\d))/g, '$1 ')
+        }
+
+        const allData = `Nombre: ${selectedCard.value.nombreTitular.toUpperCase()}
 RUT: ${formatRut(selectedCard.value.rutTitular)}
 Banco: ${selectedCard.value.banco.toUpperCase()}
 Tipo de cuenta: ${selectedCard.value.tipoCuenta}
 Número de cuenta: ${formatAccountNumber(selectedCard.value.numeroCuenta)}
 ${selectedCard.value.emailTitular ? `Correo: ${selectedCard.value.emailTitular.toLowerCase()}` : ''}`
 
-    // 📊 TRACKING: Registrar click en copiar todos los datos
-    const userToken = sessionStorage.getItem('deuna_transfer_token') || route.params.id || route.query.id || route.query.tkn
-    await metricsService.trackCopyAllData(userToken)
+        // 📊 TRACKING: Registrar click en copiar todos los datos
+        const userToken = sessionStorage.getItem('deuna_transfer_token') || route.params.id || route.query.id || route.query.tkn
+        await metricsService.trackCopyAllData(userToken)
 
-    // 📊 ANALYTICS: Registrar uso del banco específico
-    if (selectedCard.value && userToken) {
-        await analyticsService.trackBankUsage(
-            userToken,
-            selectedCard.value.banco,
-            selectedCard.value.tipoCuenta
-        )
+        // 📊 ANALYTICS: Registrar uso del banco específico
+        if (selectedCard.value && userToken) {
+            await analyticsService.trackBankUsage(
+                userToken,
+                selectedCard.value.banco,
+                selectedCard.value.tipoCuenta
+            )
+        }
+
+        // Usar la función copyToClipboard que ya incrementa el contador
+        copyToClipboard(allData)
+
+        // ✅ ETAPA 6: Finalizar traza exitosa
+        performanceService.stopTrace('copy_data_action', {
+            bank_name: selectedCard.value.banco,
+            account_type: selectedCard.value.tipoCuenta,
+            copy_success: 1
+        })
+
+        // Incrementar contador de escrituras de Firestore
+        budgetMonitoringService.incrementFirestoreWrites(2) // Métricas + analytics
+
+    } catch (error) {
+        console.error('Error en copyAllData:', error)
+
+        // ✅ ETAPA 6: Registrar error y finalizar traza
+        crashlyticsService.recordError('copy_all_data_error', error, {
+            component: 'PublicTransferView',
+            action: 'copyAllData',
+            hasSelectedCard: !!selectedCard.value
+        }, 'medium')
+
+        performanceService.stopTrace('copy_data_action', {
+            copy_success: 0,
+            error_count: 1
+        })
     }
-
-    // Usar la función copyToClipboard que ya incrementa el contador
-    copyToClipboard(allData)
 }
 
 const showCopyFeedback = () => {
@@ -473,13 +538,159 @@ const showCopyFeedback = () => {
     }, 2000)
 }
 
+// ✅ NUEVO: Funciones para manejar publicidad
+const detectAdContext = () => {
+    // Detectar industria basada en información del usuario
+    if (userInfo.value?.empresa) {
+        const empresa = userInfo.value.empresa.toLowerCase()
+
+        if (empresa.includes('restaurant') || empresa.includes('comida') || empresa.includes('food')) {
+            adContext.value.industry = 'restaurant'
+            adContext.value.keywords = ['restaurant', 'comida', 'food']
+        } else if (empresa.includes('tienda') || empresa.includes('retail') || empresa.includes('shop')) {
+            adContext.value.industry = 'retail'
+            adContext.value.keywords = ['retail', 'tienda', 'shop']
+        } else if (empresa.includes('servicio') || empresa.includes('service')) {
+            adContext.value.industry = 'services'
+            adContext.value.keywords = ['servicio', 'service']
+        }
+    }
+
+    // Detectar tipo de usuario
+    if (userInfo.value?.esPremium) {
+        adContext.value.userType = 'premium'
+    } else {
+        adContext.value.userType = 'free'
+    }
+}
+
+const handleAdClick = async (adData) => {
+    console.log('🎯 Ad clicked:', adData)
+
+    try {
+        // Registrar click en analytics
+        await analyticsService.trackEvent('ad_click', {
+            adId: adData.adId,
+            adType: adData.adType,
+            placement: adData.placement,
+            userToken: route.query.tkn || 'direct',
+            timestamp: new Date()
+        })
+
+    } catch (error) {
+        console.error('Error tracking ad click:', error)
+    }
+}
+
+const handleAdView = async (adData) => {
+    console.log('👁️ Ad viewed:', adData)
+
+    try {
+        // Registrar view en analytics
+        await analyticsService.trackEvent('ad_view', {
+            adId: adData.adId,
+            adType: adData.adType,
+            placement: adData.placement,
+            userToken: route.query.tkn || 'direct',
+            timestamp: new Date()
+        })
+
+    } catch (error) {
+        console.error('Error tracking ad view:', error)
+    }
+}
+
+// ✅ ETAPA 6: Funciones para manejar eventos de AdSense
+const handleAdSenseLoaded = (adData) => {
+    console.log('📺 AdSense ad loaded:', adData)
+}
+
+const handleAdSenseError = (adData) => {
+    console.error('❌ AdSense ad error:', adData)
+    crashlyticsService.recordError('adsense_error', new Error(adData.error), {
+        component: 'PublicTransferView',
+        adUnitId: adData.adUnitId
+    }, 'medium')
+}
+
+const handleAdSenseImpression = async (adData) => {
+    console.log('👁️ AdSense impression:', adData)
+
+    try {
+        // Registrar impresión en analytics
+        await analyticsService.trackEvent('adsense_impression', {
+            adUnitId: adData.adUnitId,
+            placement: adData.placement,
+            userToken: route.query.tkn || 'direct',
+            timestamp: new Date()
+        })
+
+        // Incrementar contador de impresiones
+        budgetMonitoringService.incrementFirestoreWrites(1)
+
+    } catch (error) {
+        console.error('Error tracking AdSense impression:', error)
+    }
+}
+
+const handleAdSenseClick = async (adData) => {
+    console.log('🖱️ AdSense click:', adData)
+
+    try {
+        // Registrar click en analytics
+        await analyticsService.trackEvent('adsense_click', {
+            adUnitId: adData.adUnitId,
+            placement: adData.placement,
+            userToken: route.query.tkn || 'direct',
+            timestamp: new Date()
+        })
+
+        // Incrementar contador de clicks
+        budgetMonitoringService.incrementFirestoreWrites(1)
+
+    } catch (error) {
+        console.error('Error tracking AdSense click:', error)
+    }
+}
+
 // Limpiar sessionStorage al salir de la página (opcional para seguridad)
 const cleanupOnExit = () => {
     sessionStorage.removeItem('deuna_transfer_token')
 }
 
 onMounted(() => {
-    loadUserData()
+    // ✅ ETAPA 6: Iniciar monitoreo de performance
+    const landingTrace = performanceService.startPublicLandingTrace(route.query.tkn)
+
+    loadUserData().then(() => {
+        // ✅ NUEVO: Detectar contexto para publicidad después de cargar datos
+        if (userInfo.value) {
+            detectAdContext()
+        }
+
+        // ✅ ETAPA 6: Finalizar traza de performance
+        performanceService.stopTrace('public_landing_load', {
+            cards_count: tarjetas.value.length,
+            has_user_data: userInfo.value ? 1 : 0,
+            load_success: 1
+        })
+
+        // Incrementar contador de lecturas de Firestore
+        budgetMonitoringService.incrementFirestoreReads(2) // Usuario + tarjetas
+
+    }).catch(error => {
+        // ✅ ETAPA 6: Registrar error
+        crashlyticsService.recordError('public_landing_load_error', error, {
+            component: 'PublicTransferView',
+            action: 'loadUserData',
+            token: route.query.tkn ? 'present' : 'missing'
+        }, 'medium')
+
+        performanceService.stopTrace('public_landing_load', {
+            load_success: 0,
+            error_count: 1
+        })
+    })
 
     // Limpiar token al cerrar/recargar la página (opcional)
     window.addEventListener('beforeunload', cleanupOnExit)
@@ -729,6 +940,22 @@ onUnmounted(() => {
 .whatsapp-btn:hover {
     transform: scale(1.1);
     box-shadow: var(--shadow-xl);
+}
+
+/* ✅ NUEVO: Estilos para secciones de publicidad */
+.ads-section {
+    margin: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.top-ads {
+    margin-bottom: 2rem;
+}
+
+.bottom-ads {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
 }
 
 @media (max-width: 768px) {

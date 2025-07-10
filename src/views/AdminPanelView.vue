@@ -3,7 +3,17 @@
     <div class="admin-panel">
         <SidebarMenu :currentView="currentView" @changeView="changeView" />
         <div class="main-content" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
-            <component :is="currentComponent" @show-notification="showNotification" />
+            <Suspense>
+                <template #default>
+                    <component :is="currentComponent" @show-notification="showNotification" />
+                </template>
+                <template #fallback>
+                    <div class="component-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Cargando componente...</p>
+                    </div>
+                </template>
+            </Suspense>
         </div>
 
         <!-- Notificación -->
@@ -13,22 +23,31 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from "vue";
 import SidebarMenu from '@/components/admin/SidebarMenu.vue'
 
-// Componentes cargables dinámicamente
-import DashboardStats from '@/components/admin/DashboardStats.vue'
-import UserManagement from '@/components/admin/UserManagement.vue'
-import UsersList from '@/components/admin/UsersList.vue'
-import SellerManagement from '@/components/admin/SellerManagement.vue'
-import SupportManagement from '@/components/admin/SupportManagement.vue'
-import SupportAgentsList from '@/components/admin/SupportAgentsList.vue'
-import TicketManagement from '@/components/admin/TicketManagement.vue'
-import BankAccountsManagement from '@/components/admin/BankAccountsManagement.vue'
-import DemographicsData from '@/components/admin/DemographicsData.vue'
-import StatisticsGraphs from '@/components/admin/StatisticsGraphs.vue'
-import Settings from '@/components/admin/Settings.vue'
+// Componentes lazy-loaded para mejor rendimiento
 import Notification from "../components/Notification.vue";
+
+// ✅ ETAPA 6: Servicios de monitoreo para administradores
+import { performanceService } from '@/services/performanceService'
+import { crashlyticsService } from '@/services/crashlyticsService'
+import { budgetMonitoringService } from '@/services/budgetMonitoringService'
+
+// Lazy loading de componentes admin
+const DashboardStats = defineAsyncComponent(() => import('@/components/admin/DashboardStats.vue'))
+const UserManagement = defineAsyncComponent(() => import('@/components/admin/UserManagement.vue'))
+const UsersList = defineAsyncComponent(() => import('@/components/admin/UsersList.vue'))
+const SellerManagement = defineAsyncComponent(() => import('@/components/admin/SellerManagement.vue'))
+const SupportManagement = defineAsyncComponent(() => import('@/components/admin/SupportManagement.vue'))
+const SupportAgentsList = defineAsyncComponent(() => import('@/components/admin/SupportAgentsList.vue'))
+const TicketManagement = defineAsyncComponent(() => import('@/components/admin/TicketManagement.vue'))
+const BankAccountsManagement = defineAsyncComponent(() => import('@/components/admin/BankAccountsManagement.vue'))
+const DemographicsData = defineAsyncComponent(() => import('@/components/admin/DemographicsData.vue'))
+const StatisticsGraphs = defineAsyncComponent(() => import('@/components/admin/StatisticsGraphs.vue'))
+const IdVerification = defineAsyncComponent(() => import('@/views/admin/IdVerificationView.vue'))
+const AuditLogs = defineAsyncComponent(() => import('@/views/admin/AuditLogsView.vue'))
+const Settings = defineAsyncComponent(() => import('@/components/admin/Settings.vue'))
 
 const currentView = ref('dashboard')
 const sidebarCollapsed = ref(false)
@@ -41,6 +60,8 @@ const viewsMap = {
     soporte: SupportManagement,
     'lista-soporte': SupportAgentsList,
     'gestion-tickets': TicketManagement,
+    'verificacion-ids': IdVerification,
+    'audit-logs': AuditLogs,
     tarjetas: BankAccountsManagement,
     datos: DemographicsData,
     estadisticas: StatisticsGraphs,
@@ -66,7 +87,48 @@ onMounted(() => {
     if (savedState !== null) {
         sidebarCollapsed.value = savedState === 'true'
     }
+
+    // ✅ ETAPA 6: Inicializar servicios de monitoreo para administradores
+    initializeAdminMonitoring()
 })
+
+// ✅ ETAPA 6: Función para inicializar monitoreo de administradores
+const initializeAdminMonitoring = () => {
+    try {
+        // Configurar contexto de usuario administrador
+        crashlyticsService.setUser('admin', 'admin@maikostudios.com', {
+            role: 'admin',
+            panel: 'admin_panel',
+            permissions: 'full_access'
+        })
+
+        // Configurar contexto global para el panel de administración
+        crashlyticsService.setGlobalContext({
+            app_section: 'admin_panel',
+            environment: process.env.NODE_ENV || 'development',
+            version: '1.0.0'
+        })
+
+        // Iniciar traza de performance para el panel de administración
+        performanceService.startTrace('admin_panel_load', {
+            user_type: 'admin',
+            initial_view: currentView.value,
+            sidebar_collapsed: sidebarCollapsed.value.toString()
+        })
+
+        // Registrar métricas de uso del panel
+        budgetMonitoringService.incrementFirestoreReads(1) // Carga inicial del panel
+
+        console.log('✅ Admin monitoring initialized')
+
+    } catch (error) {
+        console.error('Error initializing admin monitoring:', error)
+        crashlyticsService.recordError('admin_monitoring_init_error', error, {
+            component: 'AdminPanelView',
+            action: 'initializeAdminMonitoring'
+        }, 'medium')
+    }
+}
 
 // Limpiar listeners al desmontar
 onUnmounted(() => {
@@ -88,7 +150,7 @@ const showNotification = (type, message) => {
 </script>
 
 <style scoped>
-@import '@/styles/admin-layout.css';
+@import '@/styles/admin-optimized.css';
 
 .admin-panel {
     display: flex;
@@ -118,6 +180,46 @@ const showNotification = (type, message) => {
 /* Animación de entrada */
 .admin-panel {
     animation: fadeIn var(--duration-normal) var(--easing-default);
+}
+
+/* Loading de componentes async */
+.component-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    background: var(--color-surface);
+    border-radius: 1rem;
+    border: 1px solid var(--color-border);
+    margin: 2rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--color-surface-variant);
+    border-top: 4px solid var(--color-turquesa);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+.component-loading p {
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Mobile First - Responsive */
