@@ -6,41 +6,27 @@
         <!-- Banner de Servicios Maiko Studios -->
         <div v-if="currentAd.type === 'services'" class="services-ad">
           <div class="ad-header">
-            <img 
-              src="/logo-maiko-studios.png" 
-              alt="Maiko Studios" 
-              class="ad-logo"
-              @error="handleImageError"
-            />
+            <img :src="logo" alt="Maiko Studios" class="ad-logo" @error="handleImageError" />
             <div class="ad-brand">
               <span class="brand-name">Maiko Studios</span>
               <span class="brand-tagline">Soluciones Digitales</span>
             </div>
           </div>
-          
+
           <div class="ad-body">
             <h3 class="ad-title">{{ currentAd.title }}</h3>
             <p class="ad-description">{{ currentAd.description }}</p>
-            
+
             <div class="ad-features">
-              <div 
-                v-for="feature in currentAd.features" 
-                :key="feature"
-                class="feature-item"
-              >
+              <div v-for="feature in currentAd.features" :key="feature" class="feature-item">
                 <v-icon size="small" color="turquesa">mdi-check-circle</v-icon>
                 <span>{{ feature }}</span>
               </div>
             </div>
           </div>
-          
+
           <div class="ad-footer">
-            <v-btn
-              :color="currentAd.ctaColor || 'turquesa'"
-              variant="elevated"
-              size="small"
-              class="ad-cta"
-            >
+            <v-btn :color="currentAd.ctaColor || 'turquesa'" variant="elevated" size="small" class="ad-cta">
               <v-icon left size="small">{{ currentAd.ctaIcon }}</v-icon>
               {{ currentAd.ctaText }}
             </v-btn>
@@ -58,32 +44,23 @@
                 <span class="brand-tagline">Desbloquea todo</span>
               </div>
             </div>
-            
+
             <div class="ad-body">
               <h3 class="ad-title">{{ currentAd.title }}</h3>
               <p class="ad-description">{{ currentAd.description }}</p>
-              
+
               <div class="premium-benefits">
                 <div class="benefit-grid">
-                  <div 
-                    v-for="benefit in currentAd.benefits" 
-                    :key="benefit"
-                    class="benefit-item"
-                  >
+                  <div v-for="benefit in currentAd.benefits" :key="benefit" class="benefit-item">
                     <v-icon size="small" color="warning">mdi-star</v-icon>
                     <span>{{ benefit }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div class="ad-footer">
-              <v-btn
-                color="warning"
-                variant="elevated"
-                size="small"
-                class="ad-cta premium-cta"
-              >
+              <v-btn color="warning" variant="elevated" size="small" class="ad-cta premium-cta">
                 <v-icon left size="small">mdi-diamond</v-icon>
                 {{ currentAd.ctaText }}
               </v-btn>
@@ -101,19 +78,14 @@
               <span class="brand-tagline">{{ currentAd.brandTagline }}</span>
             </div>
           </div>
-          
+
           <div class="ad-body">
             <h3 class="ad-title">{{ currentAd.title }}</h3>
             <p class="ad-description">{{ currentAd.description }}</p>
           </div>
-          
+
           <div class="ad-footer">
-            <v-btn
-              :color="currentAd.ctaColor"
-              variant="elevated"
-              size="small"
-              class="ad-cta"
-            >
+            <v-btn :color="currentAd.ctaColor" variant="elevated" size="small" class="ad-cta">
               <v-icon left size="small">{{ currentAd.ctaIcon }}</v-icon>
               {{ currentAd.ctaText }}
             </v-btn>
@@ -131,9 +103,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { doc, updateDoc, increment } from 'firebase/firestore'
-import { db } from '@/firebase'
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '@/firebase';
+import logo from "@/assets/logo-maiko-studios.png";
 
 // Props
 const props = defineProps({
@@ -165,7 +138,7 @@ const viewTracked = ref(false)
 const adSize = computed(() => {
   const sizes = {
     banner: 'ad-banner',
-    sidebar: 'ad-sidebar', 
+    sidebar: 'ad-sidebar',
     footer: 'ad-footer',
     inline: 'ad-inline'
   }
@@ -189,7 +162,7 @@ const adConfigs = {
     },
     {
       id: 'maiko-ecommerce',
-      type: 'services', 
+      type: 'services',
       title: 'Tienda Online Completa',
       description: 'Vende online con nuestra plataforma de ecommerce personalizada.',
       features: ['Carrito de Compras', 'Pagos Integrados', 'Gestión de Stock'],
@@ -273,15 +246,15 @@ const adConfigs = {
 // Methods
 const selectAd = () => {
   const allAds = []
-  
+
   // Agregar ads de servicios
   allAds.push(...adConfigs.services)
-  
+
   // Agregar ads de Premium si el usuario no es Premium
   if (!props.userInfo.isPremium && !props.userInfo.esPremium) {
     allAds.push(...adConfigs.premium)
   }
-  
+
   // Agregar ads contextuales basados en el contexto
   if (props.context.industry || props.context.keywords) {
     const contextualAds = adConfigs.contextual.filter(ad => {
@@ -289,8 +262,8 @@ const selectAd = () => {
         return ad.context.includes(props.context.industry)
       }
       if (props.context.keywords) {
-        return ad.context.some(ctx => 
-          props.context.keywords.some(keyword => 
+        return ad.context.some(ctx =>
+          props.context.keywords.some(keyword =>
             ctx.toLowerCase().includes(keyword.toLowerCase())
           )
         )
@@ -299,30 +272,30 @@ const selectAd = () => {
     })
     allAds.push(...contextualAds)
   }
-  
+
   // Selección ponderada
   const totalWeight = allAds.reduce((sum, ad) => sum + ad.weight, 0)
   let random = Math.random() * totalWeight
-  
+
   for (const ad of allAds) {
     random -= ad.weight
     if (random <= 0) {
       return ad
     }
   }
-  
+
   // Fallback al primer ad
   return allAds[0] || adConfigs.services[0]
 }
 
 const loadAd = () => {
   loading.value = true
-  
+
   // Simular carga de ad
   setTimeout(() => {
     currentAd.value = selectAd()
     loading.value = false
-    
+
     // Track view después de un momento
     setTimeout(() => {
       if (!viewTracked.value) {
@@ -335,18 +308,18 @@ const loadAd = () => {
 
 const handleAdClick = async () => {
   if (!currentAd.value) return
-  
+
   try {
     // Track click
     await trackAdClick()
-    
+
     // Emit event
     emit('ad-clicked', {
       adId: currentAd.value.id,
       adType: currentAd.value.type,
       placement: props.placement
     })
-    
+
     // Navigate to target URL
     if (currentAd.value.targetUrl) {
       if (currentAd.value.targetUrl.startsWith('http')) {
@@ -356,7 +329,7 @@ const handleAdClick = async () => {
         window.location.href = currentAd.value.targetUrl
       }
     }
-    
+
   } catch (error) {
     console.error('Error handling ad click:', error)
   }
@@ -364,7 +337,7 @@ const handleAdClick = async () => {
 
 const trackAdView = async () => {
   if (!currentAd.value) return
-  
+
   try {
     const adRef = doc(db, 'public_landings', 'ads_metrics')
     await updateDoc(adRef, {
@@ -372,13 +345,13 @@ const trackAdView = async () => {
       [`views.total`]: increment(1),
       lastUpdated: new Date()
     })
-    
+
     emit('ad-viewed', {
       adId: currentAd.value.id,
       adType: currentAd.value.type,
       placement: props.placement
     })
-    
+
   } catch (error) {
     console.error('Error tracking ad view:', error)
   }
@@ -386,7 +359,7 @@ const trackAdView = async () => {
 
 const trackAdClick = async () => {
   if (!currentAd.value) return
-  
+
   try {
     const adRef = doc(db, 'public_landings', 'ads_metrics')
     await updateDoc(adRef, {
@@ -394,7 +367,7 @@ const trackAdClick = async () => {
       [`clicks.total`]: increment(1),
       lastUpdated: new Date()
     })
-    
+
   } catch (error) {
     console.error('Error tracking ad click:', error)
   }
@@ -592,9 +565,11 @@ onUnmounted(() => {
   0% {
     box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(255, 193, 7, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
   }
@@ -605,19 +580,19 @@ onUnmounted(() => {
   .ad-container {
     margin: 0.5rem 0;
   }
-  
+
   .ad-header {
     gap: 0.5rem;
   }
-  
+
   .ad-title {
     font-size: 0.9rem;
   }
-  
+
   .ad-description {
     font-size: 0.8rem;
   }
-  
+
   .benefit-grid {
     grid-template-columns: 1fr;
   }
