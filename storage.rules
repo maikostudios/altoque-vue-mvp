@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// Firebase Storage Rules para Altoque MVP
+// Reglas específicas para verificación de identidad y archivos de usuario
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Reglas para verificación de identidad (selfies y documentos)
+    match /verification/{userId}/{fileName} {
+      // Solo el usuario propietario puede subir sus archivos de verificación
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && isValidVerificationFile();
+      
+      // Solo admins y el usuario propietario pueden leer archivos de verificación
+      allow read: if request.auth != null && 
+                     (request.auth.uid == userId || isAdmin());
+    }
+    
+    // Reglas para avatares de usuario
+    match /avatars/{userId}/{fileName} {
+      // Solo el usuario propietario puede subir su avatar
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && isValidImageFile();
+      
+      // Los avatares pueden ser leídos por usuarios autenticados
+      allow read: if request.auth != null;
+    }
+    
+    // Reglas para archivos públicos (logos, assets, etc.)
+    match /public/{allPaths=**} {
+      // Lectura pública
+      allow read: if true;
+      
+      // Solo admins pueden escribir archivos públicos
+      allow write: if request.auth != null && isAdmin();
+    }
+    
+    // Reglas por defecto - denegar todo lo demás
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+  
+  // Funciones auxiliares
+  function isAdmin() {
+    return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.rol == 'admin';
+  }
+  
+  function isValidImageFile() {
+    return request.resource.contentType.matches('image/.*') &&
+           request.resource.size < 5 * 1024 * 1024; // 5MB máximo
+  }
+  
+  function isValidVerificationFile() {
+    return request.resource.contentType.matches('image/(jpeg|jpg|png)') &&
+           request.resource.size < 10 * 1024 * 1024; // 10MB máximo para documentos
+  }
+}
